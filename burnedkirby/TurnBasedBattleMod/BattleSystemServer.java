@@ -50,7 +50,7 @@ public class BattleSystemServer {
 	 * @return true if successful in creating a new battle.
 	 * @throws MinecraftException
 	 */
-	public boolean createNewBattle(int ID, int[] sideOne, int[] sideTwo) throws MinecraftException
+	public boolean createNewBattle(int ID, int[] sideOne, int[] sideTwo)
 	{
 		System.out.println("CreateNewBattle called with sides sizes ("+sideOne.length+","+sideTwo.length+")");
 		
@@ -97,7 +97,7 @@ public class BattleSystemServer {
 	 * @return false if there are no new additions to a battle.
 	 * @throws MinecraftException
 	 */
-	public boolean manageCombatants(Entity entityAttacker, Entity entityAttacked) throws MinecraftException
+	public boolean manageCombatants(Entity entityAttacker, Entity entityAttacked)
 	{
 		short inBattle = 0x0;
 		inBattle |= isInBattle(entityAttacker.entityId) ? 0x1 : 0x0;
@@ -137,7 +137,7 @@ public class BattleSystemServer {
 	 * @return True if the combatant was added to a battle.
 	 * @throws MinecraftException
 	 */
-	private boolean addCombatant(int ID, int combatant, boolean sideOne) throws MinecraftException
+	private boolean addCombatant(int ID, int combatant, boolean sideOne)
 	{
 		if(isInBattle(combatant))
 		{

@@ -28,11 +28,23 @@ public class Battle {
 	private Vector<Integer> sideTwo;
 	private int battleID;
 
+	/**
+	 * Mapping from entity ID to PlayerStatus, which holds information on
+	 * if the player has finished their turn and what action they will take in battle.
+	 */
 	private Map<Integer,PlayerStatus> playerStatus;
 	
+	/**
+	 * This is set to false when the battle ends.
+	 * A battle ends when there are no more players in battle or if there are no
+	 * more entities on one side of the battle.
+	 */
 	private boolean battleInProgress;
-	private boolean playerPhase;
 	
+	/**
+	 * Set to true briefly when calling EntityPlayer.attackTargetEntityWithCurrentItem() so
+	 * that the BattleEventListener doesn't cancel the attack.
+	 */
 	protected static Boolean playerAttacking = false;
 	
 	public Battle(int battleID)
@@ -43,47 +55,34 @@ public class Battle {
 		playerStatus = new TreeMap<Integer,PlayerStatus>();
 		
 		battleInProgress = true;
-		playerPhase = true;
 	}
 	
-	public void addCombatant(int entityID, boolean sideOne) throws MinecraftException
+	/**
+	 * Adds an entity to a battle's side.
+	 * @param entityID The entity ID of the entity to add.
+	 * @param sideOne If true, adds the entity to side One. If false, adds the entity to side Two.
+	 */
+	public void addCombatant(int entityID, boolean sideOne)
 	{
 		if(sideOne)
 			this.sideOne.add(entityID);
 		else
 			this.sideTwo.add(entityID);
 
-		//EntityLiving combatant = (EntityLiving) Minecraft.getMinecraft().theWorld.getEntityByID(entityID);
-		//System.out.println("Server has " + MinecraftServer.getServer().worldServers.length + " worlds."); //TODO debug
-		//int index = -1;
 		EntityLiving combatant = null;
-		for(int i=0; i < MinecraftServer.getServer().worldServers.length; i++)
-		{
-			//System.out.println("Checking world " + i + ", has dimension " + MinecraftServer.getServer().worldServers[i].getWorldInfo().getDimension()); //TODO debug
-//			if(MinecraftServer.getServer().worldServers[i].getWorldInfo().getDimension() == world)
-//			{				
-//				index = i;
-//				break;
-//			}
-			combatant = (EntityLiving) MinecraftServer.getServer().worldServers[i].getEntityByID(entityID);
-			if(combatant != null)
-				break;
-		}
+		
+		combatant = (EntityLiving) Utility.getEntityByID(entityID);
 		
 		if(combatant == null)
-			throw new MinecraftException("Combatant not found!!");
-		
-		//if(index == -1)
-		//	throw new MinecraftException("World not found!!");
-		
-		//EntityLiving combatant = (EntityLiving) MinecraftServer.getServer().worldServers[index].getEntityByID(entityID);
-				
-		//TODO find a better way of getting the entity because this crashes the game
+		{
+			System.out.println("Battle (" + battleID + "): Combatant not found!!"); //TODO debug
+			return;
+		}
 		
 		if(!(combatant instanceof EntityPlayer))
 		{
 			combatant.clearActivePotions(); //TODO keep track of potion effects before clearing them
-//			combatant.addPotionEffect(new PotionEffect(2, 2000000, 127, false));
+//			combatant.addPotionEffect(new PotionEffect(2, 2000000, 127, false)); //Absolute stop
 			combatant.addPotionEffect(new PotionEffect(2, 2000000, 100, false));
 			System.out.println("Set potion effect slow on " + combatant.getEntityName()); //TODO debug
 			//TODO possibly find a way to keep mobs persistent
@@ -95,12 +94,20 @@ public class Battle {
 		}
 	}
 	
+	/**
+	 * Removes a combatant from battle. This method is usually called during handling
+	 * an entity's death event.
+	 * @param entityID The entity ID of the entity to remove from battle.
+	 * @param isPlayer True if the entity is a player.
+	 */
 	public void removeCombatant(int entityID, boolean isPlayer)
 	{
 		if(sideOne.contains(entityID))
 			sideOne.removeElement(entityID);
 		else if(sideTwo.contains(entityID))
 			sideTwo.removeElement(entityID);
+		else
+			return;
 		
 		if(isPlayer)
 		{
@@ -111,31 +118,57 @@ public class Battle {
 			endBattle();
 	}
 	
+	/**
+	 * Returns the battle ID of this Battle
+	 * @return The Battle ID.
+	 */
 	public int getID()
 	{
 		return battleID;
 	}
 	
+	/**
+	 * Sets the status of the battle to ended.
+	 */
 	public void endBattle()
 	{
 		battleInProgress = false;
 	}
 	
+	/**
+	 * Returns the combatants on side One of the Battle.
+	 * @return A Vector<<Integer>> of entity IDs of entities in side One.
+	 */
 	public Vector<Integer> getSideOne()
 	{
 		return sideOne;
 	}
-	
+
+	/**
+	 * Returns the combatants on side Two of the Battle.
+	 * @return A Vector<<Integer>> of entity IDs of entities in side Two.
+	 */
 	public Vector<Integer> getSideTwo()
 	{
 		return sideTwo;
 	}
 	
+	/**
+	 * Checks if battle is in progress.
+	 * @return True if Battle is still in progress.
+	 */
 	public boolean isBattleInProgress()
 	{
 		return battleInProgress;
 	}
 	
+	/**
+	 * Updates the PlayerStaus with information on what the player will do on their turn.
+	 * Also calls battlePhase() to enact the turn. battlePhase() checks if all players are ready.
+	 * @param ID The entity ID of the player.
+	 * @param type The type of action taken by the player.
+	 * @param targetID The target entity ID by the action taken, if applicable.
+	 */
 	public void updatePlayer(int ID, int type, int targetID)
 	{
 		synchronized(playerStatus)
@@ -154,11 +187,19 @@ public class Battle {
 		battlePhase();
 	}
 	
+	/**
+	 * Returns the list of players in this battle.
+	 * @return A Collection<<Integer>> of entity IDs of players in battle.
+	 */
 	public Collection<Integer> getListOfPlayers()
 	{
 		return playerStatus.keySet();
 	}
 	
+	/**
+	 * Checks if all players are finished deciding their action for their turn.
+	 * @return True if all players have decided their actions.
+	 */
 	private boolean allPlayersReady()
 	{
 		synchronized(playerStatus)
@@ -170,6 +211,12 @@ public class Battle {
 		return true;
 	}
 	
+	/**
+	 * If all players are ready and battle is in progress, this method enacts the turn
+	 * of the battle based on the player actions and mobs in battle.
+	 * After all the actions have taken place, the method notifies players that the
+	 * turn has ended so that their GUIs can go to the main menu.
+	 */
 	public synchronized void battlePhase()
 	{
 		if(!allPlayersReady() || !battleInProgress)
@@ -213,7 +260,7 @@ public class Battle {
 				case 2: //flee
 					if(fleeCheck(key))
 					{
-						
+						//TODO after fleeCheck has been finalized, do this
 					}
 					break;
 				default:
@@ -232,6 +279,11 @@ public class Battle {
 		}
 	}
 	
+	/**
+	 * Returns if an entity can flee from battle based on the sizes of each side.
+	 * @param entityID The entity ID of the entity that wishes to flee.
+	 * @return True if fleeing is successful.
+	 */
 	private boolean fleeCheck(int entityID)
 	{
 		boolean sideOne = this.sideOne.contains(entityID);
@@ -240,23 +292,16 @@ public class Battle {
 		int diff;
 		double rand;
 		
-		if(enemySide > ownSide)
-		{
-			diff = enemySide - ownSide;
-			rand = (BattleSystemServer.random.nextDouble() + Math.log((double)(diff + 1)) )/ (double)(diff + 1) ;
-			System.out.println("FleeCheck: Enemy side larger, rand is " + rand); //TODO debug
-			return rand > 0.67d;
-		}
-		else if(enemySide == ownSide)
+		if(enemySide == ownSide)
 		{
 			return BattleSystemServer.random.nextBoolean();
 		}
 		else
 		{
-			diff = ownSide - enemySide;
-			rand = (BattleSystemServer.random.nextDouble() + Math.log((double)(diff + 1)) )/ (double)(diff + 1) ;
-			System.out.println("FleeCheck: Player side larger, rand is " + rand); //TODO debug
-			return rand < 0.67d;
+			diff = Math.abs(ownSide - enemySide);
+			rand = BattleSystemServer.random.nextDouble() / Math.log((double)(diff + Math.E)) ;
+			System.out.println("FleeCheck: Enemy side larger, rand is " + rand); //TODO debug
+			return ownSide > enemySide ? rand <= 0.67d : rand > 0.67d;
 		}
 	}
 }
