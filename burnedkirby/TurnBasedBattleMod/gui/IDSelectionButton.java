@@ -2,6 +2,9 @@ package burnedkirby.TurnBasedBattleMod.gui;
 
 import net.minecraft.client.gui.GuiButton;
 
+/**
+ * An extended GuiButton that also contains an entity ID.
+ */
 public class IDSelectionButton extends GuiButton {
 
 	protected int entityID;

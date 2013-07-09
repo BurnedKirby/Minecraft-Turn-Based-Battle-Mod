@@ -1,4 +1,4 @@
-package burnedkirby.TurnBasedBattleMod.core;
+package burnedkirby.TurnBasedBattleMod.core.network;
 
 import net.minecraft.entity.player.EntityPlayer;
 
@@ -9,6 +9,11 @@ import com.google.common.io.ByteArrayDataOutput;
 
 import cpw.mods.fml.relauncher.Side;
 
+/**
+ * This packet sent from server to player notifies the player that a turn has
+ * ended and the Battle GUI can now return to the main menu.
+ *
+ */
 public class BattlePhaseEndedPacket extends CommandPacket {
 
 	@Override

@@ -1,4 +1,4 @@
-package burnedkirby.TurnBasedBattleMod.core;
+package burnedkirby.TurnBasedBattleMod.core.network;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -6,12 +6,19 @@ import java.io.IOException;
 import net.minecraft.entity.player.EntityPlayer;
 
 import burnedkirby.TurnBasedBattleMod.ModMain;
+import burnedkirby.TurnBasedBattleMod.gui.EntityInfo;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 
 import cpw.mods.fml.relauncher.Side;
 
+/**
+ * This packet is sent from server to player with information on a combatant that is
+ * in the player's current battle.
+ * This is sent as a response from the player's BattleQueryPacket.
+ *
+ */
 public class BattleCombatantPacket extends CommandPacket {
 
 	int id;
@@ -50,7 +57,7 @@ public class BattleCombatantPacket extends CommandPacket {
 		}
 		else
 		{
-			ModMain.bg.receiveCombatant(id, isSideOne, name);
+			ModMain.bg.receiveCombatant(id, isSideOne, new EntityInfo(name));
 		}
 	}
 

@@ -1,4 +1,4 @@
-package burnedkirby.TurnBasedBattleMod.core;
+package burnedkirby.TurnBasedBattleMod.core.network;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,6 +11,10 @@ import com.google.common.io.ByteArrayDataOutput;
 
 import cpw.mods.fml.relauncher.Side;
 
+/**
+ * Packet sent to player from the server which notifies the player of
+ * entering battle and brings up the BattleGUI.
+ */
 public class InitiateBattlePacket extends CommandPacket {
 	
 	int battleID;

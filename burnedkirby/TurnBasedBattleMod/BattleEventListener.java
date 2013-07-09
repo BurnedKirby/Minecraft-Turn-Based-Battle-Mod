@@ -1,7 +1,7 @@
 package burnedkirby.TurnBasedBattleMod;
 
-import burnedkirby.TurnBasedBattleMod.core.BattleQueryPacket;
-import burnedkirby.TurnBasedBattleMod.core.InitiateBattlePacket;
+import burnedkirby.TurnBasedBattleMod.core.network.BattleQueryPacket;
+import burnedkirby.TurnBasedBattleMod.core.network.InitiateBattlePacket;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;
@@ -21,10 +21,14 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 public class BattleEventListener {
 	
-	protected static int battleIDCounter = 0; //TODO maybe split this per world
-	
+	/**
+	 * LivingAttackEvent handler that calls BattleSystemServer's manageCombatants() method
+	 * after checking several conditions. Cancels the event if the entities were added to
+	 * battle or if they are already in battle.
+	 * @param event The LivingAtttackEvent this method handles.
+	 */
 	@ForgeSubscribe
-	public void entityAttacked(LivingAttackEvent event) throws MinecraftException
+	public void entityAttacked(LivingAttackEvent event)
 	{
 		if(event.entity.worldObj.isRemote)
 			return;
@@ -34,54 +38,22 @@ public class BattleEventListener {
 		
 		if(event.entity == event.source.getEntity())
 			return;
-
-		for(WorldServer world : MinecraftServer.getServer().worldServers)
-		{
-			System.out.println("DIMENSION " + world.getWorldInfo().getDimension());
-		}
-
-		int world = event.entity.dimension;
 		
 		System.out.println(event.source.getEntity().getEntityName() + "(" + event.source.getEntity().entityId
-				+ ") hit " + event.entity.getEntityName() + "(" + event.entity.entityId + ") in world " + world);
+				+ ") hit " + event.entity.getEntityName() + "(" + event.entity.entityId + ").");
 
-//		Player player = null;
-//		
-//		if(event.entity instanceof EntityPlayer)
-//			player = (Player) event.entity;
-//		else if(event.source.getEntity() instanceof EntityPlayer)
-//			player = (Player) event.source.getEntity();
-//		else
-//			return;
-		
-		
-//		int[] sideOne = {event.entity.entityId};
-//		int[] sideTwo = {event.source.getEntity().entityId};
-//		
-//		ModMain.bss.createNewBattle(battleIDCounter, sideOne, sideTwo);
 		if(ModMain.bss.manageCombatants(event.source.getEntity(), event.entity))
 			event.setCanceled(true);
 		else if(ModMain.bss.isInBattle(event.source.getEntity().entityId) && ModMain.bss.isInBattle(event.entity.entityId))
 			if(!Battle.playerAttacking && !(event.source.getEntity() instanceof EntityPlayer)) //TODO go over this again
 				event.setCanceled(true);
-//		for(int entityID : sideOne)
-//			ModMain.bss.addCombatant(world, battleIDCounter, entityID, true);
-//		for(int entityID : sideTwo)
-//			ModMain.bss.addCombatant(world, battleIDCounter, entityID, false);
-		
-		//ModMain.instance.bss.createNewBattle(sideOne, sideTwo);
-		
-//		PacketDispatcher.sendPacketToServer(new InitiateBattlePacket(commandIDCounter).makePacket());
-//		
-//		for(int entityID : sideOne)
-//			PacketDispatcher.sendPacketToServer(new AddCombatantPacket(commandIDCounter, true, entityID).makePacket());
-//		for(int entityID : sideTwo)
-//			PacketDispatcher.sendPacketToServer(new AddCombatantPacket(commandIDCounter, false, entityID).makePacket());
-		
-		
-		//hitEntity.addPotionEffect(new PotionEffect(2, 2000000000, 127, false));
 	}
 	
+	/**
+	 * LivingDeathEvent handler that alls BattleSystemServer's combatantDeath
+	 * method with the entity that has perished.
+	 * @param event The LivingDeathEvent this method handles.
+	 */
 	@ForgeSubscribe
 	public void livingDeathEvent(LivingDeathEvent event)
 	{

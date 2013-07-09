@@ -7,8 +7,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import burnedkirby.TurnBasedBattleMod.core.BattleStatusPacket;
 import burnedkirby.TurnBasedBattleMod.core.Utility;
+import burnedkirby.TurnBasedBattleMod.core.network.BattleStatusPacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
@@ -29,6 +29,8 @@ public class BattleSystemServer {
 	 * Separate collection of entityIDs of entities in battle
 	 */
 	private Set<Integer> inBattle;
+
+	protected static int battleIDCounter = 0; //TODO maybe split this per world
 	
 	protected static Random random;
 	
@@ -65,7 +67,7 @@ public class BattleSystemServer {
 //			return false;
 		while(battles.containsKey(Integer.valueOf(ID)))
 		{
-			ID = BattleEventListener.battleIDCounter++;
+			ID = BattleSystemServer.battleIDCounter++;
 		}
 		
 		Battle newBattle = new Battle(ID);
@@ -113,7 +115,7 @@ public class BattleSystemServer {
 			
 			int[] sideOne = {entityAttacker.entityId};
 			int[] sideTwo = {entityAttacked.entityId};
-			return createNewBattle(BattleEventListener.battleIDCounter++,sideOne,sideTwo);
+			return createNewBattle(BattleSystemServer.battleIDCounter++,sideOne,sideTwo);
 		}
 		
 		int inBattleEntity = inBattle == 0x1 ? entityAttacker.entityId : entityAttacked.entityId;
@@ -239,11 +241,6 @@ public class BattleSystemServer {
 		return battles.containsKey(battleID);
 	}
 	
-//	public void removeBatte(int battleID)
-//	{
-//		if(!battles.get(battleID).isBattleInProgress())
-//			battles.remove(battleID);
-//	}
 	
 	/**
 	 * Called by the BattleEventListener on combatant's death, this method removes the
@@ -269,7 +266,7 @@ public class BattleSystemServer {
 					playerEntity = Utility.getEntityByID(player);
 					if(playerEntity == null)
 						continue;
-					PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(true,battle.getSideOne().size(),battle.getSideTwo().size()).makePacket(), (Player)playerEntity);
+					PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(true,true,battle.getSideOne().size(),battle.getSideTwo().size()).makePacket(), (Player)playerEntity);
 				}
 			}
 			else
@@ -287,62 +284,11 @@ public class BattleSystemServer {
 					playerEntity = Utility.getEntityByID(player);
 					if(playerEntity == null)
 						continue;
-					PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false,0,0).makePacket(), (Player)playerEntity);
+					PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false,false,0,0).makePacket(), (Player)playerEntity);
 				}
 				battles.remove(battle.getID());
 				System.out.println("Battle " + battle.getID() + " has been removed."); //TODO debug
 			}
 		}
 	}
-
-//	
-//	public void newBattleSize(int ID, int sideOne, int sideTwo)
-//	{
-//		Integer[] sizeArray = {Integer.valueOf(sideOne), Integer.valueOf(sideTwo)};
-//		newBattleSize.put(Integer.valueOf(ID), sizeArray);
-//	}
-//	
-//	public int createNewBattle(int ID, int[] sideOne, int[] sideTwo)
-//	{
-//		Integer[] sizeArray = newBattleSize.get(Integer.valueOf(ID));
-//		if(sizeArray[0] != Integer.valueOf(sideOne.length) || sizeArray[0] != Integer.valueOf(sideTwo.length))
-//			return -1;
-//		
-//		for(int entityID : sideOne)
-//			if(inBattle.contains(entityID))
-//				return -2;
-//		
-//		for(int entityID : sideTwo)
-//			if(inBattle.contains(entityID))
-//				return -2;
-//		
-//		while(battles.containsKey(battleID))
-//			incrementBattleID();
-//		
-//		Battle newBattle = new Battle(sideOne,sideTwo,battleID);
-//		
-//		for(int entityID : sideOne)
-//			inBattle.add(Integer.valueOf(entityID));
-//		for(int entityID : sideTwo)
-//			inBattle.add(Integer.valueOf(entityID));
-//		
-//		battles.put(Integer.valueOf(battleID), newBattle);
-//		
-//		return incrementBattleID();
-//	}
-//	
-//	public void endBattle(int ID)
-//	{
-//		if(!battles.containsKey(ID))
-//			return;
-//
-//		//Remove ids from inBattle list	
-//		for(int combatant : battles.get(Integer.valueOf(ID)).getSideOne())
-//			inBattle.remove(Integer.valueOf(combatant));
-//		for(int combatant : battles.get(Integer.valueOf(ID)).getSideTwo())
-//			inBattle.remove(Integer.valueOf(combatant));
-//		
-//		//Remove battle from battles list
-//		battles.remove(ID);
-//	}
 }

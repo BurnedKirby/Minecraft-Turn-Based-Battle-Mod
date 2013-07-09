@@ -7,6 +7,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 
+/**
+ * Utility class for commonly used methods.
+ *
+ */
 public class Utility {
 	static public Entity getEntityByID(int id)
 	{

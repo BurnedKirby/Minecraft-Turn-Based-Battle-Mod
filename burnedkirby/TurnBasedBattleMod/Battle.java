@@ -7,9 +7,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import burnedkirby.TurnBasedBattleMod.core.BattlePhaseEndedPacket;
-import burnedkirby.TurnBasedBattleMod.core.InitiateBattlePacket;
 import burnedkirby.TurnBasedBattleMod.core.Utility;
+import burnedkirby.TurnBasedBattleMod.core.network.BattlePhaseEndedPacket;
+import burnedkirby.TurnBasedBattleMod.core.network.InitiateBattlePacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;

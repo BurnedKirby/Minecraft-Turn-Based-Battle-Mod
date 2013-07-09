@@ -4,9 +4,9 @@
 
 package burnedkirby.TurnBasedBattleMod;
 
-import burnedkirby.TurnBasedBattleMod.core.CommandPacketHandler;
-import burnedkirby.TurnBasedBattleMod.core.CommandPacket;
 import burnedkirby.TurnBasedBattleMod.core.CommonProxy;
+import burnedkirby.TurnBasedBattleMod.core.network.CommandPacket;
+import burnedkirby.TurnBasedBattleMod.core.network.CommandPacketHandler;
 import burnedkirby.TurnBasedBattleMod.gui.BattleGui;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;

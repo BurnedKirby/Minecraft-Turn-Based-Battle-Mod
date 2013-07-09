@@ -1,11 +1,11 @@
-package burnedkirby.TurnBasedBattleMod.core;
+package burnedkirby.TurnBasedBattleMod.core.network;
 
 import java.util.logging.Logger;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 
-import burnedkirby.TurnBasedBattleMod.core.CommandPacket.ProtocolException;
+import burnedkirby.TurnBasedBattleMod.core.network.CommandPacket.ProtocolException;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.INetworkManager;

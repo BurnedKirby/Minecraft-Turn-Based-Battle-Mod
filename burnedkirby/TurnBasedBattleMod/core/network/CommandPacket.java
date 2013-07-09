@@ -1,7 +1,8 @@
-package burnedkirby.TurnBasedBattleMod.core;
+package burnedkirby.TurnBasedBattleMod.core.network;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.packet.Packet;
+
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
@@ -16,6 +17,9 @@ public abstract class CommandPacket {
 	public static final String CHANNEL = "BKTBBS-Command";
 	private static final BiMap<Integer, Class<? extends CommandPacket>> idMap;
 	
+	/**
+	 * Must add new Packet class here when created.
+	 */
 	static {
 		ImmutableBiMap.Builder<Integer, Class<? extends CommandPacket>> builder = ImmutableBiMap.builder();
 		

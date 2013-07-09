@@ -1,4 +1,4 @@
-package burnedkirby.TurnBasedBattleMod.core;
+package burnedkirby.TurnBasedBattleMod.core.network;
 
 import net.minecraft.entity.player.EntityPlayer;
 
@@ -10,6 +10,10 @@ import com.google.common.io.ByteArrayDataOutput;
 
 import cpw.mods.fml.relauncher.Side;
 
+/**
+ * Packet sent to server from the player that has information
+ * on what the player has decided to do on their turn.
+ */
 public class BattleCommandPacket extends CommandPacket {
 	
 	private int battleID;

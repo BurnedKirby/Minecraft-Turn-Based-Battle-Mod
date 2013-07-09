@@ -4,8 +4,8 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import burnedkirby.TurnBasedBattleMod.ModMain;
-import burnedkirby.TurnBasedBattleMod.core.BattleCommandPacket;
-import burnedkirby.TurnBasedBattleMod.core.BattleQueryPacket;
+import burnedkirby.TurnBasedBattleMod.core.network.BattleCommandPacket;
+import burnedkirby.TurnBasedBattleMod.core.network.BattleQueryPacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 
@@ -13,6 +13,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 
+/**
+ * Player/Client side GUIScreen that also manages the player side of the Battle.
+ */
 public class BattleGui extends GuiScreen {
 	
 	private int battleID;
@@ -59,6 +62,9 @@ public class BattleGui extends GuiScreen {
 		updateTick = updateTime;
 	}
 	
+	/**
+	 * Called automatically when the client brings up this GUIScreen.
+	 */
 	@Override
 	public void initGui() {
 		info[0] = "";
@@ -67,20 +73,29 @@ public class BattleGui extends GuiScreen {
 		PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,0).makePacket());
 	}
 	
-	public void checkBattleSize(int one, int two)
+	/**
+	 * Checks if the given sizes of the sides in battle match the sides on player side.
+	 * If they don't match, this method sends a query for the side that has a mismatch
+	 * (both if they both do not match sizes).
+	 * 
+	 * @param forceUpdate If true, force update of both sides of the battle on the player side.
+	 * @param one Size of server's side One of the Battle.
+	 * @param two Size of server's side Two of the Battle.
+	 */
+	public void checkBattleSize(boolean forceUpdate, int one, int two)
 	{
 		System.out.println("CheckBattleSize called with params (" + one +","+two+")");
 		boolean updateStateChanged = false;
 		
 		if((!updatingListOne && !updatingListTwo) && (one == 0 || two == 0))
 		{
-			//TODO
+			//TODO is this necessary?
 			Minecraft.getMinecraft().setIngameFocus();
 		}
 
 		synchronized(sideOne)
 		{
-			if(!updatingListOne && sideOne.size() != one) //TODO reset entity id lists and repopulate lists
+			if(forceUpdate || (!updatingListOne && sideOne.size() != one)) //TODO reset entity id lists and repopulate lists
 			{
 				updatingListOne = true;
 				updateStateChanged = true;
@@ -93,7 +108,7 @@ public class BattleGui extends GuiScreen {
 		synchronized(sideTwo)
 		{
 			
-			if(!updatingListOne && sideTwo.size() != two)
+			if(forceUpdate || (!updatingListOne && sideTwo.size() != two))
 			{
 				updatingListTwo = true;
 				updateStateChanged = true;
@@ -111,7 +126,13 @@ public class BattleGui extends GuiScreen {
 		}
 	}
 	
-	public void receiveCombatant(int id, boolean isSideOne, String name)
+	/**
+	 * Adds a combatant to one side of the battle for display.
+	 * @param id The entity ID of the combatant.
+	 * @param isSideOne True if the combatant belongs to side One.
+	 * @param name The entity name of the combatant.
+	 */
+	public void receiveCombatant(int id, boolean isSideOne, EntityInfo info)
 	{
 		boolean updateStateChanged = false;
 		
@@ -120,7 +141,7 @@ public class BattleGui extends GuiScreen {
 			synchronized(sideOne)
 			{
 				sideOne.add(id);
-				sideOneInfo.put(id, new EntityInfo(name));
+				sideOneInfo.put(id, info);
 			}
 		}
 		else if(updatingListTwo && !isSideOne)
@@ -128,7 +149,7 @@ public class BattleGui extends GuiScreen {
 			synchronized(sideTwo)
 			{
 				sideTwo.add(id);
-				sideTwoInfo.put(id, new EntityInfo(name));
+				sideTwoInfo.put(id, info);
 			}
 		}
 		
@@ -176,6 +197,9 @@ public class BattleGui extends GuiScreen {
 		}
 	}
 	
+	/**
+	 * Returns the gui to the main menu.
+	 */
 	public void battlePhaseEnded()
 	{
 		if(waitingPhase)
@@ -185,6 +209,12 @@ public class BattleGui extends GuiScreen {
 		}
 	}
 	
+	/**
+	 * Update method that consistently sends a query to the server if the number of combatants
+	 * have changed.
+	 * 
+	 * TODO may be unnecessary?
+	 */
 	private void update()
 	{
 		updateTick--;
@@ -198,6 +228,9 @@ public class BattleGui extends GuiScreen {
 		}
 	}
 	
+	/**
+	 * Method that draws the elements of the GUI.
+	 */
 	@Override
 	public void drawScreen(int par1, int par2, float par3) {
 		drawRect(0, 0, width, height, 0xa0000000 | bgColor);
@@ -215,6 +248,9 @@ public class BattleGui extends GuiScreen {
 		update();
 	}
 	
+	/**
+	 * Draws the combatant information on the GUIScreen.
+	 */
 	public void drawCombatants()
 	{
 		synchronized(sideOne)
@@ -235,6 +271,14 @@ public class BattleGui extends GuiScreen {
 			combatantButtonPopulated = true;
 	}
 	
+	/**
+	 * Draws a combatant on the GUIScreen based on the given parameters.
+	 * @param id entityID of the combatant.
+	 * @param sideOne True if the combatant is on side One.
+	 * @param x X coordinate of the drawn information.
+	 * @param y Y coordinate of the drawn information.
+	 * @param color The color of the drawn information (when applicable).
+	 */
 	private void drawCombatant(int id, boolean sideOne, int x, int y, int color)
 	{
 		int nameLength = 0;
@@ -242,16 +286,15 @@ public class BattleGui extends GuiScreen {
 		{
 			if(!combatantButtonPopulated)
 			{
-				int width;
 				if(sideOne)
 				{
-					width = Minecraft.getMinecraft().fontRenderer.getStringWidth(sideOneInfo.get(id).name);
-					buttonList.add(new IDSelectionButton(5, id, x, y, width + 2, 10, sideOneInfo.get(id).name));
+					nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(sideOneInfo.get(id).name);
+					buttonList.add(new IDSelectionButton(5, id, x - nameLength/2, y, nameLength + 2, 10, sideOneInfo.get(id).name));
 				}
 				else
 				{
-					width = Minecraft.getMinecraft().fontRenderer.getStringWidth(sideTwoInfo.get(id).name);
-					buttonList.add(new IDSelectionButton(5, id, x, y, width + 2, 10, sideTwoInfo.get(id).name));
+					nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(sideTwoInfo.get(id).name);
+					buttonList.add(new IDSelectionButton(5, id, x - nameLength/2, y, nameLength + 2, 10, sideTwoInfo.get(id).name));
 				}
 			}
 		}
@@ -270,6 +313,10 @@ public class BattleGui extends GuiScreen {
 		}
 	}
 
+	/**
+	 * Displays a menu on the screen.
+	 * @param menu The type of menu to display.
+	 */
 	public void getMenu(int menu) {
 		buttonList.clear();
 		info[0] = "";
@@ -311,6 +358,10 @@ public class BattleGui extends GuiScreen {
 		}
 	}
 	
+	/**
+	 * This method is called automatically when a button is pressed.
+	 * Calls getMenu() with the button ID.
+	 */
 	@Override
 	protected void actionPerformed(GuiButton button) {
 		if(button.id == 2) //Flee
@@ -339,11 +390,18 @@ public class BattleGui extends GuiScreen {
 		getMenu(button.id);
 	}
 	
+	/**
+	 * Called when the GUI is closed, this method removes the reference to itself to remove the
+	 * cached information on combatants.
+	 */
 	@Override
 	public void onGuiClosed() {
 		ModMain.bg = null;
 	}
 	
+	/**
+	 * Determines if the GUIScreen pauses the game in singleplayer.
+	 */
 	@Override
 	public boolean doesGuiPauseGame() {
 		return false;
