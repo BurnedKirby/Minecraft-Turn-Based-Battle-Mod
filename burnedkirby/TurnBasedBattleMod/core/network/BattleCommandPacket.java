@@ -47,8 +47,8 @@ public class BattleCommandPacket extends CommandPacket {
 	public void execute(EntityPlayer player, Side side) {
 		if(side.isServer())
 		{
-			Battle battle = ModMain.bss.getBattle(battleID);
-			battle.updatePlayer(player.entityId, command, entityTargetID);
+//			Battle battle = ModMain.bss.getBattle(battleID);
+//			battle.updatePlayer(player.entityId, command, entityTargetID);
 		}
 		else
 		{

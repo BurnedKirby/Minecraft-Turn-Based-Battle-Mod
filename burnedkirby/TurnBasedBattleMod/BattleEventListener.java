@@ -42,11 +42,11 @@ public class BattleEventListener {
 		System.out.println(event.source.getEntity().getEntityName() + "(" + event.source.getEntity().entityId
 				+ ") hit " + event.entity.getEntityName() + "(" + event.entity.entityId + ").");
 
-		if(ModMain.bss.manageCombatants(event.source.getEntity(), event.entity))
+		if(ModMain.bss.manageCombatants((EntityLiving)event.source.getEntity(), (EntityLiving)event.entity))
 			event.setCanceled(true);
-		else if(ModMain.bss.isInBattle(event.source.getEntity().entityId) && ModMain.bss.isInBattle(event.entity.entityId))
-			if(!Battle.playerAttacking && !(event.source.getEntity() instanceof EntityPlayer)) //TODO go over this again
-				event.setCanceled(true);
+//		else if(ModMain.bss.isInBattle(event.source.getEntity().entityId) && ModMain.bss.isInBattle(event.entity.entityId))
+//			if(!Battle.playerAttacking && !(event.source.getEntity() instanceof EntityPlayer)) //TODO go over this again
+//				event.setCanceled(true);
 	}
 	
 	/**
@@ -54,9 +54,9 @@ public class BattleEventListener {
 	 * method with the entity that has perished.
 	 * @param event The LivingDeathEvent this method handles.
 	 */
-	@ForgeSubscribe
-	public void livingDeathEvent(LivingDeathEvent event)
-	{
-		ModMain.bss.combatantDeath(event.entity);
-	}
+//	@ForgeSubscribe
+//	public void livingDeathEvent(LivingDeathEvent event)
+//	{
+////		ModMain.bss.combatantDeath(event.entity);
+//	}
 }

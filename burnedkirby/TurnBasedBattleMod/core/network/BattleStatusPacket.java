@@ -19,15 +19,13 @@ public class BattleStatusPacket extends CommandPacket {
 	
 	boolean found;
 	boolean forceUpdate;
-	int sideOneSize;
-	int sideTwoSize;
+	int battleSize;
 	
-	public BattleStatusPacket(boolean found, boolean forceUpdate, int sideOneSize, int sideTwoSize)
+	public BattleStatusPacket(boolean found, boolean forceUpdate, int battleSize)
 	{
 		this.found = found;
 		this.forceUpdate = forceUpdate;
-		this.sideOneSize = sideOneSize;
-		this.sideTwoSize = sideTwoSize;
+		this.battleSize = battleSize;
 	}
 	
 	public BattleStatusPacket()
@@ -37,16 +35,14 @@ public class BattleStatusPacket extends CommandPacket {
 	public void write(ByteArrayDataOutput out) {
 		out.writeBoolean(found);
 		out.writeBoolean(forceUpdate);
-		out.writeInt(sideOneSize);
-		out.writeInt(sideTwoSize);
+		out.writeInt(battleSize);
 	}
 
 	@Override
 	public void read(ByteArrayDataInput in) throws ProtocolException {
 		found = in.readBoolean();
 		forceUpdate = in.readBoolean();
-		sideOneSize = in.readInt();
-		sideTwoSize = in.readInt();
+		battleSize = in.readInt();
 	}
 
 	@Override
@@ -60,7 +56,7 @@ public class BattleStatusPacket extends CommandPacket {
 		{
 			if(found)// && ModMain.bg != null) //TODO check if null pointer exception can happen
 			{
-				ModMain.bg.checkBattleSize(forceUpdate, sideOneSize, sideTwoSize);
+				ModMain.bg.checkBattleInfo(forceUpdate, battleSize);
 			}
 			else// if(!found)
 			{

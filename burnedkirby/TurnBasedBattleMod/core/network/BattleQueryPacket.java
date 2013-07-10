@@ -18,17 +18,13 @@ import cpw.mods.fml.relauncher.Side;
 /**
  * Packet sent by player in battle to server that is a query for battle status.
  *
- * Query types:
- * 0: Send server's battle information of the number of entities in each side to the player.
- * 1: Send server's battle information of side One to the player.
- * 2: Send server's battle information of side Two to the player.
  */
 public class BattleQueryPacket extends CommandPacket {
 	
 	int battleID;
-	int type;
+	short type;
 	
-	public BattleQueryPacket(int battleID, int type)
+	public BattleQueryPacket(int battleID, short type)
 	{
 		this.battleID = battleID;
 		this.type = type;
@@ -39,13 +35,13 @@ public class BattleQueryPacket extends CommandPacket {
 	@Override
 	public void write(ByteArrayDataOutput out) {
 		out.writeInt(battleID);
-		out.writeInt(type);
+		out.writeShort(type);
 	}
 
 	@Override
 	public void read(ByteArrayDataInput in) {
 		battleID = in.readInt();
-		type = in.readInt();
+		type = in.readShort();
 	}
 
 	/**
@@ -56,46 +52,47 @@ public class BattleQueryPacket extends CommandPacket {
 	public void execute(EntityPlayer player, Side side) throws ProtocolException {
 		if(side.isServer())
 		{
-			if(!ModMain.bss.battleExists(battleID) || !ModMain.bss.getBattle(battleID).isBattleInProgress())
-			{
-				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false,false,0,0).makePacket(), (Player)player);
-				return;
-			}
 			
-			Vector<Integer> sideOne = ModMain.bss.getBattleSide(battleID, true);
-//			if(sideOne == null)
+//			if(!ModMain.bss.battleExists(battleID) || !ModMain.bss.getBattle(battleID).isBattleInProgress())
 //			{
-//				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false,0,0).makePacket(), (Player)player);
+//				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false,false,0,0).makePacket(), (Player)player);
+//				return;
 //			}
-			Vector<Integer> sideTwo = ModMain.bss.getBattleSide(battleID, false);
-			if(type == 0) //Send sizes to player.
-			{
-				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(true, false, sideOne.size(), sideTwo.size()).makePacket(), (Player)player);
-			}
-			else if(type == 1) //Send side one information to player.
-			{
-				Enumeration<Integer> list = sideOne.elements();
-				String name = "";
-				int id;
-				while(list.hasMoreElements())
-				{
-					id = list.nextElement();
-					name = Utility.getEntityByID(id).getEntityName();
-					PacketDispatcher.sendPacketToPlayer(new BattleCombatantPacket(id, true, name).makePacket(), (Player)player);
-				}
-			}
-			else if(type == 2) //Send side two information to player.
-			{
-				Enumeration<Integer> list = sideTwo.elements();
-				String name = "";
-				int id;
-				while(list.hasMoreElements())
-				{
-					id = list.nextElement();
-					name = Utility.getEntityByID(id).getEntityName();
-					PacketDispatcher.sendPacketToPlayer(new BattleCombatantPacket(id, false, name).makePacket(), (Player)player);
-				}
-			}
+//			
+//			Vector<Integer> sideOne = ModMain.bss.getBattleSide(battleID, true);
+////			if(sideOne == null)
+////			{
+////				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false,0,0).makePacket(), (Player)player);
+////			}
+//			Vector<Integer> sideTwo = ModMain.bss.getBattleSide(battleID, false);
+//			if(type == 0) //Send sizes to player.
+//			{
+//				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(true, false, sideOne.size(), sideTwo.size()).makePacket(), (Player)player);
+//			}
+//			else if(type == 1) //Send side one information to player.
+//			{
+//				Enumeration<Integer> list = sideOne.elements();
+//				String name = "";
+//				int id;
+//				while(list.hasMoreElements())
+//				{
+//					id = list.nextElement();
+//					name = Utility.getEntityByID(id).getEntityName();
+//					PacketDispatcher.sendPacketToPlayer(new BattleCombatantPacket(id, true, name).makePacket(), (Player)player);
+//				}
+//			}
+//			else if(type == 2) //Send side two information to player.
+//			{
+//				Enumeration<Integer> list = sideTwo.elements();
+//				String name = "";
+//				int id;
+//				while(list.hasMoreElements())
+//				{
+//					id = list.nextElement();
+//					name = Utility.getEntityByID(id).getEntityName();
+//					PacketDispatcher.sendPacketToPlayer(new BattleCombatantPacket(id, false, name).makePacket(), (Player)player);
+//				}
+//			}
 		}
 		else
 		{
