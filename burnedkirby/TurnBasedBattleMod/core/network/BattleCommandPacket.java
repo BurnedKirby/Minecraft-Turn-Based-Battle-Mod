@@ -3,7 +3,9 @@ package burnedkirby.TurnBasedBattleMod.core.network;
 import net.minecraft.entity.player.EntityPlayer;
 
 import burnedkirby.TurnBasedBattleMod.Battle;
+import burnedkirby.TurnBasedBattleMod.CombatantInfo;
 import burnedkirby.TurnBasedBattleMod.ModMain;
+import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
@@ -17,38 +19,47 @@ import cpw.mods.fml.relauncher.Side;
 public class BattleCommandPacket extends CommandPacket {
 	
 	private int battleID;
-	private int entityTargetID;
-	private int command;
+	private CombatantInfo combatant;
 	
-	public BattleCommandPacket(int battleID, int entityTargetID, int command)
+	public BattleCommandPacket(int battleID, CombatantInfo combatant)
 	{
 		this.battleID = battleID;
-		this.entityTargetID = entityTargetID;
-		this.command = command;
+		this.combatant = combatant;
 	}
 	
-	public BattleCommandPacket() {}
+	public BattleCommandPacket() {
+		combatant = new CombatantInfo();
+	}
 
 	@Override
 	public void write(ByteArrayDataOutput out) {
 		out.writeInt(battleID);
-		out.writeInt(entityTargetID);
-		out.writeInt(command);
+		out.writeBoolean(combatant.isPlayer);
+		out.writeInt(combatant.id);
+		out.writeBoolean(combatant.isSideOne);
+		out.writeUTF(combatant.name);
+		out.writeBoolean(combatant.ready);
+		out.writeInt(combatant.type.ordinal());
+		out.writeInt(combatant.target);
 	}
 
 	@Override
 	public void read(ByteArrayDataInput in) {
 		battleID = in.readInt();
-		entityTargetID = in.readInt();
-		command = in.readInt();
+		combatant.isPlayer = in.readBoolean();
+		combatant.id = in.readInt();
+		combatant.isSideOne = in.readBoolean();
+		combatant.name = in.readUTF();
+		combatant.ready = in.readBoolean();
+		combatant.type = Type.values()[in.readInt()];
+		combatant.target = in.readInt();
 	}
 
 	@Override
 	public void execute(EntityPlayer player, Side side) {
 		if(side.isServer())
 		{
-//			Battle battle = ModMain.bss.getBattle(battleID);
-//			battle.updatePlayer(player.entityId, command, entityTargetID);
+			ModMain.bss.managePlayerUpdate(battleID, combatant);
 		}
 		else
 		{

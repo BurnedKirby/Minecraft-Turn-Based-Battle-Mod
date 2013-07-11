@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import net.minecraft.entity.player.EntityPlayer;
 
+import burnedkirby.TurnBasedBattleMod.CombatantInfo;
+import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
 import burnedkirby.TurnBasedBattleMod.ModMain;
 import burnedkirby.TurnBasedBattleMod.gui.EntityInfo;
 
@@ -21,31 +23,37 @@ import cpw.mods.fml.relauncher.Side;
  */
 public class BattleCombatantPacket extends CommandPacket {
 
-	int id;
-	boolean isSideOne;
-	String name;
+	CombatantInfo combatant;
 	
-	BattleCombatantPacket(int id, boolean isSideOne, String name)
+	public BattleCombatantPacket(CombatantInfo combatant)
 	{
-		this.id = id;
-		this.isSideOne = isSideOne;
-		this.name = name;
+		this.combatant = combatant;
 	}
 	
-	BattleCombatantPacket() {}
+	public BattleCombatantPacket() {
+		combatant = new CombatantInfo();
+	}
 	
 	@Override
 	public void write(ByteArrayDataOutput out) {
-		out.writeInt(id);
-		out.writeBoolean(isSideOne);
-		out.writeUTF(name);
+		out.writeBoolean(combatant.isPlayer);
+		out.writeInt(combatant.id);
+		out.writeBoolean(combatant.isSideOne);
+		out.writeUTF(combatant.name);
+		out.writeBoolean(combatant.ready);
+		out.writeInt(combatant.type.ordinal());
+		out.writeInt(combatant.target);
 	}
 
 	@Override
 	public void read(ByteArrayDataInput in) throws ProtocolException {
-		id = in.readInt();
-		isSideOne = in.readBoolean();
-		name = in.readUTF();
+		combatant.isPlayer = in.readBoolean();
+		combatant.id = in.readInt();
+		combatant.isSideOne = in.readBoolean();
+		combatant.name = in.readUTF();
+		combatant.ready = in.readBoolean();
+		combatant.type = Type.values()[in.readInt()];
+		combatant.target = in.readInt();
 	}
 
 	@Override
@@ -57,7 +65,7 @@ public class BattleCombatantPacket extends CommandPacket {
 		}
 		else
 		{
-			ModMain.bg.receiveCombatant(id, isSideOne, new EntityInfo(name));
+			ModMain.bg.receiveCombatant(combatant);
 		}
 	}
 

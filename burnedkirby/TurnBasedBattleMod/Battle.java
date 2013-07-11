@@ -1,6 +1,7 @@
 package burnedkirby.TurnBasedBattleMod;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Vector;
 
 import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
 import burnedkirby.TurnBasedBattleMod.core.Utility;
+import burnedkirby.TurnBasedBattleMod.core.network.BattleCombatantPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattlePhaseEndedPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleStatusPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.InitiateBattlePacket;
@@ -29,9 +31,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.MinecraftException;
 
-public class Battle implements Comparable<Battle>{
-	private Set<CombatantInfo> combatants;
+public class Battle{
+	private Map<Integer,CombatantInfo> combatants;
 	private Stack<CombatantInfo> newCombatantQueue;
+	private Stack<CombatantInfo> removeCombatantQueue;
 	private int battleID;
 
 	protected enum BattleStatus {
@@ -40,37 +43,44 @@ public class Battle implements Comparable<Battle>{
 	
 	private BattleStatus status;
 	
-	private boolean phaseInProgress;
+//	private boolean phaseInProgress;
 	
 	protected boolean battleEnded;
+	
+	public Battle(int id)
+	{
+		battleID = id;
+	}
 	
 	public Battle(int id, Stack<CombatantInfo> newCombatants)
 	{
 		battleID = id;
-		combatants = new TreeSet<CombatantInfo>();
+		combatants = new TreeMap<Integer,CombatantInfo>();
 		newCombatantQueue = new Stack<CombatantInfo>();
+		removeCombatantQueue = new Stack<CombatantInfo>();
 		
 		CombatantInfo combatant;
-		while(!combatants.isEmpty())
+		while(!newCombatants.isEmpty())
 		{
 			combatant = newCombatants.pop();
+			System.out.println("Initializing battle with combatant " + combatant.name);
 			if(combatant.isPlayer)
 			{
 				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,combatant).makePacket(), (Player)Utility.getEntityByID(combatant.id));
 			}
-			combatants.add(combatant);
+			combatants.put(combatant.id, combatant);
 		}
 		
 		status = BattleStatus.PLAYER_PHASE;
 		battleEnded = false;
-		phaseInProgress = false;
+//		phaseInProgress = false;
 	}
 	
 	public void addCombatant(CombatantInfo newCombatant)
 	{
 		if(status == BattleStatus.PLAYER_PHASE)
 		{
-			combatants.add(newCombatant);
+			combatants.put(newCombatant.id, newCombatant);
 
 			if(newCombatant.isPlayer)
 				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,newCombatant).makePacket(), (Player)Utility.getEntityByID(newCombatant.id));
@@ -83,9 +93,26 @@ public class Battle implements Comparable<Battle>{
 		}
 	}
 	
+	public void manageDeath(int id)
+	{
+		if(status == BattleStatus.PLAYER_PHASE)
+		{
+			CombatantInfo removed = combatants.remove(id);
+			
+			if(removed.isPlayer)
+				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false, false, combatants.size()).makePacket(), (Player)Utility.getEntityByID(id));
+			
+			notifyPlayers(true);
+		}
+		else
+		{
+			removeCombatantQueue.add(combatants.get(id));
+		}
+	}
+	
 	public CombatantInfo getCombatant(CombatantInfo combatantQuery)
 	{
-		for(CombatantInfo combatant : combatants)
+		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant == combatantQuery)
 				return combatant;
@@ -95,38 +122,34 @@ public class Battle implements Comparable<Battle>{
 	
 	public void updatePlayerStatus(CombatantInfo combatant)
 	{
-		if(this.status != BattleStatus.PLAYER_PHASE || !combatants.contains(combatant))
+		if(this.status != BattleStatus.PLAYER_PHASE || !combatants.containsValue(combatant))
 		{
 			System.out.println("WARNING: Battle " + battleID + " failed updatePlayerStatus."); //TODO debug
 			return;
 		}
 		
-		if(!combatants.remove(combatant))
-			System.out.println("WARNING: Battle " + battleID + " added new player on updatePlayerStatus.");
-		combatants.add(combatant);
-	}
-	
-	public boolean isInBattle(CombatantInfo combatant)
-	{
-		return combatants.contains(combatant);
+		combatants.put(combatant.id, combatant);
+		
+		update();
 	}
 	
 	public boolean isInBattle(int id)
 	{
-		return isInBattle(new CombatantInfo(false, id, false, false, Type.DO_NOTHING, 0));
+		return combatants.containsKey(id);
 	}
 	
 	private boolean getPlayersReady()
 	{
-		for(CombatantInfo combatant : combatants)
+		for(CombatantInfo combatant : combatants.values())
 		{
+			System.out.println("getPlayersReady: " + combatant.ready);
 			if(combatant.isPlayer && !combatant.ready)
 				return false;
 		}
 		return true;
 	}
 	
-	public void update()
+	public synchronized void update()
 	{
 		switch(status)
 		{
@@ -144,34 +167,39 @@ public class Battle implements Comparable<Battle>{
 
 	private void playerPhase()
 	{
-		if(phaseInProgress)
-			return;
-		phaseInProgress = true;
+//		if(phaseInProgress)
+//			return;
+//		phaseInProgress = true;
 		
+		boolean forceUpdate = false;
 		
+		if(!newCombatantQueue.isEmpty())
+			forceUpdate = true;
 		while(!newCombatantQueue.isEmpty())
 		{
-			combatants.add(newCombatantQueue.pop());
+			CombatantInfo combatant = newCombatantQueue.pop();
+			combatants.put(combatant.id, combatant);
 		}
 		
-		notifyPlayers(true);
+		notifyPlayers(forceUpdate);
 		
 		if(getPlayersReady())
 		{
 			status = BattleStatus.CALCULATIONS_PHASE;
+			System.out.println("PlayerPhase ended.");
 		}
 		
-		phaseInProgress = false;
+//		phaseInProgress = false;
 	}
 	
 	private void calculationsPhase()
 	{
-		if(phaseInProgress)
-			return;
-		phaseInProgress = true;
+//		if(phaseInProgress)
+//			return;
+//		phaseInProgress = true;
 		
 		//Combatant flee phase
-		for(CombatantInfo combatant : combatants)
+		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.type != Type.FLEE)
 				continue;
@@ -187,7 +215,7 @@ public class Battle implements Comparable<Battle>{
 		//Combatant attack phase
 		Entity combatantEntity;
 		Entity targetEntity;
-		for(CombatantInfo combatant : combatants)
+		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.type != Type.ATTACK)
 				continue;
@@ -206,35 +234,44 @@ public class Battle implements Comparable<Battle>{
 		}
 		
 		status = BattleStatus.END_CHECK_PHASE;
+		System.out.println("Calculations phase ended.");
 		
-		phaseInProgress = false;
+//		phaseInProgress = false;
 	}
 	
 	private void endCheckPhase()
 	{
-		if(phaseInProgress)
-			return;
-		phaseInProgress = true;
+//		if(phaseInProgress)
+//			return;
+//		phaseInProgress = true;
+		CombatantInfo combatantRef;
+		Iterator<CombatantInfo> iter = combatants.values().iterator();
+		Stack<CombatantInfo> replacementQueue = new Stack<CombatantInfo>();
 		
-		Stack<CombatantInfo> removalQueue = new Stack<CombatantInfo>();
-		Entity combatantEntity;
-		for(CombatantInfo combatant : combatants)
+		
+		while(iter.hasNext())
 		{
-			if(Utility.getEntityByID(combatant.id) == null)
-				removalQueue.push(combatant);
+			combatantRef = iter.next();
+			combatantRef.ready = false;
+			replacementQueue.push(combatantRef);
 		}
 		
-		while(!removalQueue.isEmpty())
-			combatants.remove(removalQueue.pop());
+		while(!replacementQueue.isEmpty())
+		{
+			combatantRef = replacementQueue.pop();
+			combatants.put(combatantRef.id, combatantRef);
+			System.out.println("repQueue: " + combatantRef.ready);
+		}
 		
-		if(combatants.isEmpty())
+		if(combatants.isEmpty()) //TODO finish this
 			battleEnded = true;
 		
-		notifyPlayers(false);
+		notifyPlayersTurnEnded();
 		
 		status = BattleStatus.PLAYER_PHASE;
+		System.out.println("End phase ended.");
 		
-		phaseInProgress = false;
+//		phaseInProgress = false;
 	}
 	
 	private boolean fleeCheck(CombatantInfo fleeingCombatant)
@@ -256,17 +293,36 @@ public class Battle implements Comparable<Battle>{
 		}
 	}
 	
-	private void notifyPlayers(boolean forceUpdate)
+	protected void notifyPlayers(boolean forceUpdate)
 	{
-		for(CombatantInfo combatant : combatants)
+		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.isPlayer)
 				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(true, forceUpdate, combatants.size()).makePacket(), (Player)Utility.getEntityByID(combatant.id));
 		}
 	}
-
-	@Override
-	public int compareTo(Battle other) {
-		return battleID - other.battleID;
+	
+	protected void notifyPlayersTurnEnded()
+	{
+		for(CombatantInfo combatant : combatants.values())
+		{
+			if(combatant.isPlayer)
+			{
+				System.out.println("Notify player turn ended packet sent.");
+				if(Utility.getEntityByID(combatant.id) == null)
+					System.out.println("WARNING: player id returned null");
+				PacketDispatcher.sendPacketToPlayer(new BattlePhaseEndedPacket().makePacket(), (Player)Utility.getEntityByID(combatant.id));
+			}
+		}
 	}
+	
+	protected void notifyPlayerOfCombatants(EntityLiving player)
+	{
+		for(CombatantInfo combatant : combatants.values())
+		{
+			PacketDispatcher.sendPacketToPlayer(new BattleCombatantPacket(combatant).makePacket(), (Player)player);
+		}
+	}
+	
+	
 }

@@ -1,8 +1,10 @@
 package burnedkirby.TurnBasedBattleMod.gui;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import burnedkirby.TurnBasedBattleMod.CombatantInfo;
+import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
 import burnedkirby.TurnBasedBattleMod.ModMain;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleCommandPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleQueryPacket;
@@ -22,19 +24,24 @@ public class BattleGui extends GuiScreen {
 	private CombatantInfo player;
 	
 	private List<CombatantInfo> combatants;
+	private int serverBattleSize;
+	private boolean updatingCombatants;
 	
 	private int bgColor = 0x000000;
 	private String info[] = new String[2];
 	
 	private boolean combatantButton = false;
 	private boolean combatantButtonPopulated = false;
-
-	private int command = 0;
+	
+	private boolean turnPhase;
 	
 	public BattleGui(int battleID, CombatantInfo player)
 	{
 		this.battleID = battleID;
 		this.player = player;
+		player.ready = true;
+		
+		combatants = new LinkedList<CombatantInfo>();
 	}
 	
 	/**
@@ -42,10 +49,51 @@ public class BattleGui extends GuiScreen {
 	 */
 	@Override
 	public void initGui() {
+		ModMain.bg = this;
 		info[0] = "";
 		info[1] = "";
 		getMenu(-2);
+		updatingCombatants = false;
 		PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 0).makePacket());
+		turnPhase = false;
+	}
+	
+	public void checkBattleInfo(boolean forceUpdate, int battleSize)
+	{
+		serverBattleSize = battleSize;
+		if((!updatingCombatants && combatants.size() != battleSize) || forceUpdate)
+		{
+			combatants.clear();
+			updatingCombatants = true;
+			PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 1).makePacket());
+			update();
+		}
+	}
+	
+	public void receiveCombatant(CombatantInfo combatant)
+	{
+		if(updatingCombatants)
+		{
+			combatants.add(combatant);
+			if(combatants.size() == serverBattleSize)
+			{
+				updatingCombatants = false;
+				PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 0).makePacket());
+				update();
+			}
+		}
+	}
+	
+	public void update()
+	{
+		System.out.println("BattleGUI update called");
+		if(updatingCombatants)
+			getMenu(-2);
+		else if(!turnPhase)
+		{
+			turnPhase = true;
+			getMenu(0);
+		}
 	}
 	
 	/**
@@ -72,20 +120,23 @@ public class BattleGui extends GuiScreen {
 	 */
 	public void drawCombatants()
 	{
-//		synchronized(sideOne)
-//		{
-//			for(int i=0; i<sideOne.size(); i++)
-//			{
-//				drawCombatant(sideOne.get(i),true,width/8,height/4+10*i,0xffffffff);
-//			}
-//		}
-//		synchronized(sideTwo)
-//		{
-//			for(int i=0; i<sideTwo.size(); i++)
-//			{
-//				drawCombatant(sideTwo.get(i),false,width*7/8,height/4+10*i,0xffffffff);
-//			}
-//		}
+		int x, y1 = height/4, y2 = height/4;
+		for(CombatantInfo combatant : combatants)
+		{
+			if(combatant.isSideOne)
+			{
+				y1 += 10;
+				x = width/8;
+				drawCombatant(combatant,x,y1,0xFFFFFFFF);
+			}
+			else
+			{
+				y2 += 10;
+				x = width * 7 / 8;
+				drawCombatant(combatant,x,y2,0xFFFFFFFF);
+			}
+		}
+		
 		if(!combatantButtonPopulated)
 			combatantButtonPopulated = true;
 	}
@@ -98,38 +149,20 @@ public class BattleGui extends GuiScreen {
 	 * @param y Y coordinate of the drawn information.
 	 * @param color The color of the drawn information (when applicable).
 	 */
-	private void drawCombatant(int id, boolean sideOne, int x, int y, int color)
+	private void drawCombatant(CombatantInfo combatant, int x, int y, int color)
 	{
-		int nameLength = 0;
-//		if(combatantButton)
-//		{
-//			if(!combatantButtonPopulated)
-//			{
-//				if(sideOne)
-//				{
-//					nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(sideOneInfo.get(id).name);
-//					buttonList.add(new IDSelectionButton(5, id, x - nameLength/2, y, nameLength + 2, 10, sideOneInfo.get(id).name));
-//				}
-//				else
-//				{
-//					nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(sideTwoInfo.get(id).name);
-//					buttonList.add(new IDSelectionButton(5, id, x - nameLength/2, y, nameLength + 2, 10, sideTwoInfo.get(id).name));
-//				}
-//			}
-//		}
-//		else
-//		{
-//			if(sideOne)
-//			{
-//				nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(sideOneInfo.get(id).name);
-//				Minecraft.getMinecraft().fontRenderer.drawString(sideOneInfo.get(id).name, x - nameLength/2, y, color);
-//			}
-//			else
-//			{
-//				nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(sideTwoInfo.get(id).name);
-//				Minecraft.getMinecraft().fontRenderer.drawString(sideTwoInfo.get(id).name, x - nameLength/2, y, color);
-//			}
-//		}
+		int nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(combatant.name);
+		if(combatantButton)
+		{
+			if(!combatantButtonPopulated)
+			{
+				buttonList.add(new IDSelectionButton(5, combatant.id, x - nameLength/2, y, nameLength + 2, 10, combatant.name));
+			}
+		}
+		else
+		{
+			Minecraft.getMinecraft().fontRenderer.drawString(combatant.name, x - nameLength/2, y, color);
+		}
 	}
 
 	/**
@@ -185,9 +218,9 @@ public class BattleGui extends GuiScreen {
 	protected void actionPerformed(GuiButton button) {
 		if(button.id == 2) //Flee
 		{
-			command = 2;
-			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID,0,command).makePacket());
-//			waitingPhase = true;
+			player.type = Type.FLEE;
+			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
+			turnPhase = false;
 		}
 		
 		if(button.id == 3) //Show attack menu
@@ -200,10 +233,10 @@ public class BattleGui extends GuiScreen {
 		
 		if(button.id == 5) //Attack phase
 		{
-			command = 1;
-//			attackTarget = ((IDSelectionButton)button).entityID;
-//			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, attackTarget, command).makePacket());
-//			waitingPhase = true;
+			player.target = ((IDSelectionButton)button).entityID;
+			player.type = Type.ATTACK;
+			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
+			turnPhase = false;
 		}
 		
 		getMenu(button.id);

@@ -1,8 +1,9 @@
 package burnedkirby.TurnBasedBattleMod;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
-public class CombatantInfo implements Comparable<CombatantInfo>, Serializable {
+public class CombatantInfo{
 	
 	public enum Type {
 		DO_NOTHING, ATTACK, FLEE
@@ -14,7 +15,7 @@ public class CombatantInfo implements Comparable<CombatantInfo>, Serializable {
 	
 	public String name;
 
-	public transient boolean ready;
+	public boolean ready;
 	
 	/**
 	 * Status type:
@@ -22,9 +23,9 @@ public class CombatantInfo implements Comparable<CombatantInfo>, Serializable {
 	 * ** 1: player queued attack **
 	 * ** 2: player queued flee **
 	 */
-	public transient Type type;
+	public Type type;
 	
-	public transient int target;
+	public int target;
 	
 	
 	public CombatantInfo()
@@ -50,19 +51,19 @@ public class CombatantInfo implements Comparable<CombatantInfo>, Serializable {
 		target = 0;
 	}
 	
-	public CombatantInfo(boolean isPlayer, int id, boolean isSideOne, boolean ready, Type type, int target)
+	public CombatantInfo(boolean isPlayer, int id, boolean isSideOne, String name, boolean ready, Type type, int target)
 	{
 		this.isPlayer = isPlayer;
 		this.id = id;
 		this.isSideOne = isSideOne;
-		name = "";
+		this.name = name;
 		this.ready = ready;
 		this.type = type;
 		this.target = target;
 	}
-
+	
 	@Override
-	public int compareTo(CombatantInfo other) {
-		return id - other.id;
+	public boolean equals(Object obj) {
+		return (obj instanceof CombatantInfo ? id == ((CombatantInfo)obj).id : false);
 	}
 }

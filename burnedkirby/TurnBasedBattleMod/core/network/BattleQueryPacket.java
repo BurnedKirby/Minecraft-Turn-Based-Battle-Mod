@@ -52,7 +52,7 @@ public class BattleQueryPacket extends CommandPacket {
 	public void execute(EntityPlayer player, Side side) throws ProtocolException {
 		if(side.isServer())
 		{
-			
+			ModMain.bss.manageQuery(battleID, type, player);
 //			if(!ModMain.bss.battleExists(battleID) || !ModMain.bss.getBattle(battleID).isBattleInProgress())
 //			{
 //				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false,false,0,0).makePacket(), (Player)player);

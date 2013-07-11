@@ -54,9 +54,9 @@ public class BattleEventListener {
 	 * method with the entity that has perished.
 	 * @param event The LivingDeathEvent this method handles.
 	 */
-//	@ForgeSubscribe
-//	public void livingDeathEvent(LivingDeathEvent event)
-//	{
-////		ModMain.bss.combatantDeath(event.entity);
-//	}
+	@ForgeSubscribe
+	public void livingDeathEvent(LivingDeathEvent event)
+	{
+		ModMain.bss.manageCombatantDeath(event.entity);
+	}
 }

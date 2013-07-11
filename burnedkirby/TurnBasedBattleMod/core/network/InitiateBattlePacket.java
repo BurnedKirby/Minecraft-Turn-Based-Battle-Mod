@@ -31,7 +31,9 @@ public class InitiateBattlePacket extends CommandPacket {
 		this.player = player;
 	}
 	
-	public InitiateBattlePacket() {}
+	public InitiateBattlePacket() {
+		player = new CombatantInfo();
+	}
 
 	@Override
 	public void write(ByteArrayDataOutput out) {
@@ -39,6 +41,7 @@ public class InitiateBattlePacket extends CommandPacket {
 		out.writeBoolean(player.isPlayer);
 		out.writeInt(player.id);
 		out.writeBoolean(player.isSideOne);
+		out.writeUTF(player.name);
 	}
 
 	@Override
@@ -47,6 +50,7 @@ public class InitiateBattlePacket extends CommandPacket {
 		player.isPlayer = in.readBoolean();
 		player.id = in.readInt();
 		player.isSideOne = in.readBoolean();
+		player.name = in.readUTF();
 	}
 
 	@Override
