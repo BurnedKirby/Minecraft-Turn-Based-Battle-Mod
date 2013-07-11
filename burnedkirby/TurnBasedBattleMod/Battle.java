@@ -67,6 +67,10 @@ public class Battle{
 			{
 				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,combatant).makePacket(), (Player)combatant.entityReference);
 			}
+			else if(combatant.entityReference instanceof EntityMob)
+			{
+				combatant.type = Type.ATTACK;
+			}
 			combatants.put(combatant.id, combatant);
 		}
 		
@@ -79,6 +83,11 @@ public class Battle{
 	{
 		if(status == BattleStatus.PLAYER_PHASE)
 		{
+			if(newCombatant.entityReference instanceof EntityMob)
+			{
+				newCombatant.type = Type.ATTACK;
+			}
+			
 			combatants.put(newCombatant.id, newCombatant);
 
 			if(newCombatant.isPlayer)
@@ -127,7 +136,7 @@ public class Battle{
 			return;
 		}
 		
-		if(combatants.containsKey(combatant.target))
+		if(combatants.containsKey(combatant.id) && combatants.containsKey(combatant.target))
 			combatants.get(combatant.id).updateBattleInformation(combatant);
 		else
 			notifyPlayers(false);
@@ -204,14 +213,19 @@ public class Battle{
 //		phaseInProgress = true;
 		
 		//Combatant flee phase
-		for(CombatantInfo combatant : combatants.values())
+		Iterator<CombatantInfo> iter = combatants.values().iterator();
+		CombatantInfo combatant;
+		while(iter.hasNext())
 		{
+			combatant = iter.next();
 			if(combatant.type != Type.FLEE)
 				continue;
 			
 			if(fleeCheck(combatant))
 			{
-				//TODO flee
+				iter.remove();
+				if(combatant.isPlayer)
+					notifyPlayer(false, combatant, true);
 			}
 			
 			combatant.type = Type.DO_NOTHING;
@@ -220,13 +234,12 @@ public class Battle{
 		//Combatant attack phase
 		EntityLiving combatantEntity;
 		EntityLiving targetEntity;
-		CombatantInfo combatant;
 		CombatantInfo[] combatantArray = combatants.values().toArray(new CombatantInfo[0]);
-		int rand;
+//		int rand;
 		for(int i=0; i < combatantArray.length; i++)
 		{
 			combatant = combatantArray[i];
-			if(combatant.isPlayer && combatant.type != Type.ATTACK)
+			if(combatant.type != Type.ATTACK)
 				continue;
 			
 			combatantEntity = combatant.entityReference;
@@ -238,7 +251,7 @@ public class Battle{
 				if(combatant.isPlayer)
 				{
 					targetEntity = combatants.get(combatant.target).entityReference;
-					if(targetEntity.isDead)
+					if(targetEntity.isDead || !combatants.containsKey(targetEntity.entityId))
 						continue;
 					targetEntity.hurtResistantTime = 0;
 					ModMain.bss.attackingEntity = combatantEntity;
@@ -293,7 +306,7 @@ public class Battle{
 			{
 				iter.remove();
 				if(combatantRef.isPlayer)
-					notifyPlayer(false, combatantRef);
+					notifyPlayer(false, combatantRef, false);
 				continue;
 			}
 
@@ -361,13 +374,13 @@ public class Battle{
 		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.isPlayer)
-				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded || combatant.entityReference.isDead, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready).makePacket(), (Player)combatant.entityReference);
+				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !combatant.entityReference.isDead, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready).makePacket(), (Player)combatant.entityReference);
 		}
 	}
 	
-	protected void notifyPlayer(boolean forceUpdate, CombatantInfo player)
+	protected void notifyPlayer(boolean forceUpdate, CombatantInfo player, boolean fledBattle)
 	{
-		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded || player.entityReference.isDead, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready).makePacket(), (Player)player.entityReference);
+		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !player.entityReference.isDead && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready).makePacket(), (Player)player.entityReference);
 	}
 	
 //	protected void notifyPlayersTurnEnded()

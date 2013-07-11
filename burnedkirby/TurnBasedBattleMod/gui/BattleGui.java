@@ -237,6 +237,7 @@ public class BattleGui extends GuiScreen {
 		if(button.id == 2) //Flee
 		{
 			player.type = Type.FLEE;
+			player.target = player.id;
 			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
 			turnChoiceSent = true;
 		}

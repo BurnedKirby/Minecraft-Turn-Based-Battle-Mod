@@ -199,12 +199,11 @@ public class BattleSystemServer {
 	
 	public class BattleUpdate implements Runnable
 	{
-		boolean battlesIsEmpty = false;
 		Stack<Integer> removalQueue = new Stack<Integer>();
 
 		@Override
 		public synchronized void run() {
-			while(MinecraftServer.getServer().isServerRunning() && !battlesIsEmpty)
+			while(MinecraftServer.getServer().isServerRunning())
 			{
 				synchronized(battles)
 				{
@@ -221,10 +220,11 @@ public class BattleSystemServer {
 						battles.remove(removalQueue.pop());
 					}
 					
-					battlesIsEmpty = battles.isEmpty();
+					if(battles.isEmpty())
+						return;
 				}
 				try {
-					Thread.sleep(1800);
+					Thread.sleep(1500);
 				} catch (InterruptedException e) {}
 			}
 		}
