@@ -33,13 +33,18 @@ public class BattleSystemServer {
 	
 	protected static Random random;
 	
+	protected static EntityLiving attackingEntity;
+	protected static Object attackingLock;
+	
 	private Thread battleUpdateThread;
 	
 	public BattleSystemServer()
 	{
 		battles = new TreeMap<Integer,Battle>();
 		random = new Random(Minecraft.getMinecraft().getSystemTime());
-		battleUpdateThread = new Thread(new BattleUpdate());
+		battleUpdateThread = null;
+		attackingEntity = null;
+		attackingLock = new Object();
 	}
 	
 	/**
@@ -53,30 +58,33 @@ public class BattleSystemServer {
 	 */
 	public boolean manageCombatants(EntityLiving entityAttacker, EntityLiving entityAttacked)
 	{
+		boolean returnValue = false;
 		short inBattle = 0x0;
 		inBattle |= isInBattle(entityAttacker.entityId) ? 0x1 : 0x0;
 		inBattle |= isInBattle(entityAttacked.entityId) ? 0x2 : 0x0;
 		
 		System.out.println("inbattle: " + inBattle);
-		
-		if(!battleUpdateThread.isAlive())
-			battleUpdateThread.start();
+
 		switch(inBattle)
 		{
 		case 0x0:
 			if(!(entityAttacker instanceof EntityPlayer) && !(entityAttacked instanceof EntityPlayer))
-				return false;
+			{
+				returnValue = false;
+				break;
+			}
 			
 			Stack<CombatantInfo> combatants = new Stack<CombatantInfo>();
-			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.entityId, true, entityAttacker.getEntityName(), false, Type.DO_NOTHING, entityAttacker.getAttackTarget() != null ? entityAttacker.getAttackTarget().entityId : 0));
-			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.entityId, false, entityAttacked.getEntityName(), false, Type.DO_NOTHING, entityAttacked.getAttackTarget() != null ? entityAttacked.getAttackTarget().entityId : 0));
+			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.entityId, entityAttacker, true, entityAttacker.getEntityName(), false, Type.DO_NOTHING, entityAttacker.getAttackTarget() != null ? entityAttacker.getAttackTarget().entityId : 0));
+			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.entityId, entityAttacked, false, entityAttacked.getEntityName(), false, Type.DO_NOTHING, entityAttacked.getAttackTarget() != null ? entityAttacked.getAttackTarget().entityId : 0));
 			synchronized(battles)
 			{
 				battles.put(battleIDCounter,new Battle(battleIDCounter, combatants));
 			}
 			System.out.println("New battle " + battleIDCounter + " created.");
 			battleIDCounter++;
-			return true;
+			returnValue = true;
+			break;
 		case 0x1:
 		case 0x2:
 			EntityLiving newCombatant = (inBattle == 0x1 ? entityAttacked : entityAttacker);
@@ -85,31 +93,46 @@ public class BattleSystemServer {
 			synchronized(battles)
 			{
 				Battle battleToJoin;
-				boolean isSideOne = !((battleToJoin = findBattleByEntityID(inBattleCombatant.entityId)).getCombatant(new CombatantInfo(inBattleCombatant.entityId)).isSideOne);
+				boolean isSideOne = !((battleToJoin = findBattleByEntityID(inBattleCombatant.entityId)).getCombatant(inBattleCombatant.entityId).isSideOne);
 				
-				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.entityId, isSideOne, newCombatant.getEntityName(), false, Type.DO_NOTHING, newCombatant.getAttackTarget() != null ? newCombatant.getAttackTarget().entityId : 0));
+				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.entityId, newCombatant, isSideOne, newCombatant.getEntityName(), false, Type.DO_NOTHING, newCombatant.getAttackTarget() != null ? newCombatant.getAttackTarget().entityId : 0));
 			}
-			return true;
+			returnValue = true;
+			break;
 		case 0x3:
-			return true; //TODO
+			if(entityAttacker == attackingEntity)
+			{
+				returnValue = false;
+				break;
+			}
+			returnValue = true;
+			break;
 		default:
-			return true;
+			returnValue = true;
+			break;
 		}
+		
+		if(battleUpdateThread == null || !battleUpdateThread.isAlive())
+		{
+			battleUpdateThread = new Thread(new BattleUpdate());
+			battleUpdateThread.start();
+		}
+		return returnValue;
 	}
 	
-	public void manageCombatantDeath(Entity entity)
-	{
-		Battle b = findBattleByEntityID(entity.entityId);
-		
-		if(b == null)
-		{
-			System.out.println("Dead Entity (" + entity.entityId + ") " + entity.getEntityName() + " not in battle.");
-		}
-		else
-		{
-			b.manageDeath(entity.entityId);
-		}
-	}
+//	public void manageCombatantDeath(Entity entity)
+//	{
+//		Battle b = findBattleByEntityID(entity.entityId);
+//		
+//		if(b == null)
+//		{
+//			System.out.println("Dead Entity (" + entity.entityId + ") " + entity.getEntityName() + " not in battle.");
+//		}
+//		else
+//		{
+//			b.manageDeath(entity.entityId);
+//		}
+//	}
 	
 	/**
 	 * Checks if the entity is currently in battle.
@@ -146,8 +169,14 @@ public class BattleSystemServer {
 	{
 		synchronized(battles)
 		{
-		switch(type)
-		{
+
+			if(battles.get(battleID) == null)
+			{
+				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false).makePacket(), (Player)player);
+				return;
+			}
+			switch(type)
+			{
 			case 0:
 				battles.get(battleID).notifyPlayers(false);
 				break;
@@ -170,20 +199,32 @@ public class BattleSystemServer {
 	
 	public class BattleUpdate implements Runnable
 	{
+		boolean battlesIsEmpty = false;
+		Stack<Integer> removalQueue = new Stack<Integer>();
 
 		@Override
-		public void run() {
-			while(MinecraftServer.getServer().isServerRunning())
+		public synchronized void run() {
+			while(MinecraftServer.getServer().isServerRunning() && !battlesIsEmpty)
 			{
 				synchronized(battles)
 				{
 					for(Battle b : battles.values())
 					{
-						b.update();
+						if(b.update())
+						{
+							removalQueue.add(b.getBattleID());
+						}
 					}
+					
+					while(!removalQueue.isEmpty())
+					{
+						battles.remove(removalQueue.pop());
+					}
+					
+					battlesIsEmpty = battles.isEmpty();
 				}
 				try {
-					Thread.sleep(2000);
+					Thread.sleep(1800);
 				} catch (InterruptedException e) {}
 			}
 		}

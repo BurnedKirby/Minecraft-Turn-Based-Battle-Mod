@@ -33,7 +33,9 @@ public class BattleGui extends GuiScreen {
 	private boolean combatantButton = false;
 	private boolean combatantButtonPopulated = false;
 	
-	private boolean turnPhase;
+	private boolean turnChoiceSent;
+	
+	private int currentMenu;
 	
 	public BattleGui(int battleID, CombatantInfo player)
 	{
@@ -55,10 +57,10 @@ public class BattleGui extends GuiScreen {
 		getMenu(-2);
 		updatingCombatants = false;
 		PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 0).makePacket());
-		turnPhase = false;
+		turnChoiceSent = false;
 	}
 	
-	public void checkBattleInfo(boolean forceUpdate, int battleSize)
+	public void checkBattleInfo(boolean forceUpdate, int battleSize, boolean playerPhase, boolean turnChoiceReceived)
 	{
 		serverBattleSize = battleSize;
 		if((!updatingCombatants && combatants.size() != battleSize) || forceUpdate)
@@ -66,8 +68,8 @@ public class BattleGui extends GuiScreen {
 			combatants.clear();
 			updatingCombatants = true;
 			PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 1).makePacket());
-			update();
 		}
+		update(playerPhase, turnChoiceReceived);
 	}
 	
 	public void receiveCombatant(CombatantInfo combatant)
@@ -79,21 +81,36 @@ public class BattleGui extends GuiScreen {
 			{
 				updatingCombatants = false;
 				PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 0).makePacket());
-				update();
 			}
 		}
 	}
 	
-	public void update()
+//	public void updateTurnEnd(boolean serverTurnEnded)
+//	{
+//		if(serverTurnEnded)
+//			turnChoiceSent = false;
+//	}
+	
+	public void update(boolean playerPhase, boolean turnChoiceReceived)
 	{
-		System.out.println("BattleGUI update called");
-		if(updatingCombatants)
-			getMenu(-2);
-		else if(!turnPhase)
+		System.out.println("Update called, turnSentBool is" + turnChoiceSent);
+		if(playerPhase && !updatingCombatants)
 		{
-			turnPhase = true;
-			getMenu(0);
+			if(turnChoiceReceived && !turnChoiceSent)
+			{
+				turnChoiceSent = true;
+				getMenu(-2);
+			}
+			else if(!turnChoiceReceived && (turnChoiceSent || currentMenu == -2))
+			{
+				turnChoiceSent = false;
+				getMenu(0);
+			}
+			else if(currentMenu == -2 && !turnChoiceSent)
+				getMenu(0);
 		}
+		else
+			getMenu(-2);
 	}
 	
 	/**
@@ -173,6 +190,7 @@ public class BattleGui extends GuiScreen {
 		buttonList.clear();
 		info[0] = "";
 		info[1] = "";
+		currentMenu = menu;
 		switch(menu)
 		{
 		case -2: //Waiting on server
@@ -220,7 +238,7 @@ public class BattleGui extends GuiScreen {
 		{
 			player.type = Type.FLEE;
 			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
-			turnPhase = false;
+			turnChoiceSent = true;
 		}
 		
 		if(button.id == 3) //Show attack menu
@@ -236,7 +254,7 @@ public class BattleGui extends GuiScreen {
 			player.target = ((IDSelectionButton)button).entityID;
 			player.type = Type.ATTACK;
 			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
-			turnPhase = false;
+			turnChoiceSent = true;
 		}
 		
 		getMenu(button.id);

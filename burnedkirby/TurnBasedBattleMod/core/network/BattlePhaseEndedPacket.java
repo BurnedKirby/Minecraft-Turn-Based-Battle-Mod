@@ -37,8 +37,7 @@ public class BattlePhaseEndedPacket extends CommandPacket {
 		}
 		else
 		{
-			System.out.println("Notify player turn ended packet received.");
-			ModMain.bg.update();
+//			ModMain.bg.updateTurnEnd(true);
 		}
 	}
 

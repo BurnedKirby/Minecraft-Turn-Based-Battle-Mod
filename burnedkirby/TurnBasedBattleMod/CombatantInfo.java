@@ -1,7 +1,6 @@
 package burnedkirby.TurnBasedBattleMod;
 
-import java.io.Serializable;
-import java.util.Comparator;
+import net.minecraft.entity.EntityLiving;
 
 public class CombatantInfo{
 	
@@ -11,6 +10,7 @@ public class CombatantInfo{
 	
 	public boolean isPlayer;
 	public int id;
+	public EntityLiving entityReference;
 	public boolean isSideOne;
 	
 	public String name;
@@ -32,6 +32,7 @@ public class CombatantInfo{
 	{
 		isPlayer = false;
 		id = 0;
+		entityReference = null;
 		isSideOne = true;
 		name = "";
 		ready = false;
@@ -44,6 +45,7 @@ public class CombatantInfo{
 		this.id = id;
 		
 		isPlayer = false;
+		entityReference = null;
 		isSideOne = true;
 		name = "";
 		ready = false;
@@ -51,15 +53,27 @@ public class CombatantInfo{
 		target = 0;
 	}
 	
-	public CombatantInfo(boolean isPlayer, int id, boolean isSideOne, String name, boolean ready, Type type, int target)
+	public CombatantInfo(boolean isPlayer, int id, EntityLiving reference, boolean isSideOne, String name, boolean ready, Type type, int target)
 	{
 		this.isPlayer = isPlayer;
 		this.id = id;
+		entityReference = reference;
 		this.isSideOne = isSideOne;
 		this.name = name;
 		this.ready = ready;
 		this.type = type;
 		this.target = target;
+	}
+	
+	public boolean updateBattleInformation(CombatantInfo newInfo)
+	{
+		if(id != newInfo.id)
+			return false;
+		
+		ready = newInfo.ready;
+		target = newInfo.target;
+		type = newInfo.type;
+		return true;
 	}
 	
 	@Override

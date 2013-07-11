@@ -12,7 +12,6 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
-import burnedkirby.TurnBasedBattleMod.core.Utility;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleCombatantPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattlePhaseEndedPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleStatusPacket;
@@ -34,7 +33,7 @@ import net.minecraft.world.MinecraftException;
 public class Battle{
 	private Map<Integer,CombatantInfo> combatants;
 	private Stack<CombatantInfo> newCombatantQueue;
-	private Stack<CombatantInfo> removeCombatantQueue;
+//	private Stack<CombatantInfo> removeCombatantQueue;
 	private int battleID;
 
 	protected enum BattleStatus {
@@ -57,7 +56,7 @@ public class Battle{
 		battleID = id;
 		combatants = new TreeMap<Integer,CombatantInfo>();
 		newCombatantQueue = new Stack<CombatantInfo>();
-		removeCombatantQueue = new Stack<CombatantInfo>();
+//		removeCombatantQueue = new Stack<CombatantInfo>();
 		
 		CombatantInfo combatant;
 		while(!newCombatants.isEmpty())
@@ -66,7 +65,7 @@ public class Battle{
 			System.out.println("Initializing battle with combatant " + combatant.name);
 			if(combatant.isPlayer)
 			{
-				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,combatant).makePacket(), (Player)Utility.getEntityByID(combatant.id));
+				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,combatant).makePacket(), (Player)combatant.entityReference);
 			}
 			combatants.put(combatant.id, combatant);
 		}
@@ -83,7 +82,7 @@ public class Battle{
 			combatants.put(newCombatant.id, newCombatant);
 
 			if(newCombatant.isPlayer)
-				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,newCombatant).makePacket(), (Player)Utility.getEntityByID(newCombatant.id));
+				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,newCombatant).makePacket(), (Player)newCombatant.entityReference);
 			
 			notifyPlayers(true);
 		}
@@ -93,31 +92,31 @@ public class Battle{
 		}
 	}
 	
-	public void manageDeath(int id)
+//	public void manageDeath(int id)
+//	{
+//		if(status == BattleStatus.PLAYER_PHASE)
+//		{
+//			CombatantInfo removed = combatants.remove(id);
+//			
+//			if(removed.isPlayer)
+//				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false, false, combatants.size()).makePacket(), (Player)removed.entityReference);
+//			
+//			notifyPlayers(true);
+//		}
+//		else
+//		{
+//			removeCombatantQueue.add(combatants.get(id));
+//		}
+//	}
+	
+	public CombatantInfo getCombatant(int combatantID)
 	{
-		if(status == BattleStatus.PLAYER_PHASE)
-		{
-			CombatantInfo removed = combatants.remove(id);
-			
-			if(removed.isPlayer)
-				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false, false, combatants.size()).makePacket(), (Player)Utility.getEntityByID(id));
-			
-			notifyPlayers(true);
-		}
-		else
-		{
-			removeCombatantQueue.add(combatants.get(id));
-		}
+		return combatants.get(combatantID);
 	}
 	
-	public CombatantInfo getCombatant(CombatantInfo combatantQuery)
+	public int getBattleID()
 	{
-		for(CombatantInfo combatant : combatants.values())
-		{
-			if(combatant == combatantQuery)
-				return combatant;
-		}
-		return null;
+		return battleID;
 	}
 	
 	public void updatePlayerStatus(CombatantInfo combatant)
@@ -128,9 +127,10 @@ public class Battle{
 			return;
 		}
 		
-		combatants.put(combatant.id, combatant);
-		
-		update();
+		if(combatants.containsKey(combatant.target))
+			combatants.get(combatant.id).updateBattleInformation(combatant);
+		else
+			notifyPlayers(false);
 	}
 	
 	public boolean isInBattle(int id)
@@ -149,20 +149,25 @@ public class Battle{
 		return true;
 	}
 	
-	public synchronized void update()
+	public synchronized boolean update()
 	{
-		switch(status)
-		{
-		case PLAYER_PHASE:
-			playerPhase();
-			break;
-		case CALCULATIONS_PHASE:
-			calculationsPhase();
-			break;
-		case END_CHECK_PHASE:
-			endCheckPhase();
-			break;
-		}
+		if(!battleEnded)
+			switch(status)
+			{
+			case PLAYER_PHASE:
+				playerPhase();
+				break;
+			case CALCULATIONS_PHASE:
+				calculationsPhase();
+				break;
+			case END_CHECK_PHASE:
+				endCheckPhase();
+				break;
+			}
+		else
+			notifyPlayers(false);
+		
+		return battleEnded;
 	}
 
 	private void playerPhase()
@@ -213,24 +218,55 @@ public class Battle{
 		}
 		
 		//Combatant attack phase
-		Entity combatantEntity;
-		Entity targetEntity;
-		for(CombatantInfo combatant : combatants.values())
+		EntityLiving combatantEntity;
+		EntityLiving targetEntity;
+		CombatantInfo combatant;
+		CombatantInfo[] combatantArray = combatants.values().toArray(new CombatantInfo[0]);
+		int rand;
+		for(int i=0; i < combatantArray.length; i++)
 		{
-			if(combatant.type != Type.ATTACK)
+			combatant = combatantArray[i];
+			if(combatant.isPlayer && combatant.type != Type.ATTACK)
 				continue;
 			
-			combatantEntity = Utility.getEntityByID(combatant.id);
-			if(combatantEntity == null)
+			combatantEntity = combatant.entityReference;
+			if(combatantEntity.isDead)
 				continue;
-			targetEntity = Utility.getEntityByID(combatant.target);
 			
-			if(combatant.isPlayer)
-				((EntityPlayer)Utility.getEntityByID(combatant.id)).attackTargetEntityWithCurrentItem(Utility.getEntityByID(combatant.target));
-			else if(combatantEntity instanceof EntityMob)
-				((EntityMob)combatantEntity).attackEntityAsMob(targetEntity);
-			else
-				;//TODO
+			synchronized(ModMain.bss.attackingLock)
+			{
+				if(combatant.isPlayer)
+				{
+					targetEntity = combatants.get(combatant.target).entityReference;
+					if(targetEntity.isDead)
+						continue;
+					targetEntity.hurtResistantTime = 0;
+					ModMain.bss.attackingEntity = combatantEntity;
+					((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
+				}
+				else if(combatantEntity instanceof EntityMob)
+				{
+//					rand = ModMain.bss.random.nextInt(combatants.size()) + combatants.size();
+//					int k=0,j=0,picked=0;
+//					for(; j<rand; k++)
+//					{
+//						if(combatantArray[k % combatantArray.length].isPlayer)
+//						{
+//							j++;
+//							picked = k % combatantArray.length;
+//						}
+//					}
+//					targetEntity = combatantArray[picked].entityReference;
+//					System.out.println("Picked " + targetEntity.getEntityName());
+					targetEntity = combatantEntity.getAttackTarget();
+					targetEntity.hurtResistantTime = 0;
+					ModMain.bss.attackingEntity = combatantEntity;
+					((EntityMob)combatantEntity).attackEntityAsMob(targetEntity);
+				}
+				else
+					System.out.println("Else triggered");//TODO
+				ModMain.bss.attackingEntity = null;
+			}
 		}
 		
 		status = BattleStatus.END_CHECK_PHASE;
@@ -246,32 +282,59 @@ public class Battle{
 //		phaseInProgress = true;
 		CombatantInfo combatantRef;
 		Iterator<CombatantInfo> iter = combatants.values().iterator();
-		Stack<CombatantInfo> replacementQueue = new Stack<CombatantInfo>();
-		
+		CombatantInfo defaultInfo = new CombatantInfo();
+		defaultInfo.ready = false;
+		defaultInfo.type = Type.DO_NOTHING;
 		
 		while(iter.hasNext())
 		{
 			combatantRef = iter.next();
-			combatantRef.ready = false;
-			replacementQueue.push(combatantRef);
+			if(combatantRef.entityReference.isDead)
+			{
+				iter.remove();
+				if(combatantRef.isPlayer)
+					notifyPlayer(false, combatantRef);
+				continue;
+			}
+
+			defaultInfo.target = combatantRef.target;
+			defaultInfo.id = combatantRef.id;
+			combatantRef.updateBattleInformation(defaultInfo);
 		}
 		
-		while(!replacementQueue.isEmpty())
-		{
-			combatantRef = replacementQueue.pop();
-			combatants.put(combatantRef.id, combatantRef);
-			System.out.println("repQueue: " + combatantRef.ready);
-		}
+		checkIfBattleEnded();
 		
-		if(combatants.isEmpty()) //TODO finish this
-			battleEnded = true;
-		
-		notifyPlayersTurnEnded();
+//		notifyPlayersTurnEnded();
 		
 		status = BattleStatus.PLAYER_PHASE;
 		System.out.println("End phase ended.");
+
+		notifyPlayers(false);
 		
 //		phaseInProgress = false;
+	}
+	
+	private void checkIfBattleEnded()
+	{
+		if(battleEnded)
+			return;
+		
+		int players = 0;
+		int sideOne = 0;
+		int sideTwo = 0;
+		for(CombatantInfo combatant : combatants.values())
+		{
+			if(combatant.isSideOne)
+				sideOne++;
+			else
+				sideTwo++;
+			
+			if(combatant.isPlayer)
+				players++;
+		}
+		
+		if(sideOne == 0 || sideTwo == 0 || players == 0)
+			battleEnded = true;
 	}
 	
 	private boolean fleeCheck(CombatantInfo fleeingCombatant)
@@ -298,23 +361,25 @@ public class Battle{
 		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.isPlayer)
-				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(true, forceUpdate, combatants.size()).makePacket(), (Player)Utility.getEntityByID(combatant.id));
+				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded || combatant.entityReference.isDead, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready).makePacket(), (Player)combatant.entityReference);
 		}
 	}
 	
-	protected void notifyPlayersTurnEnded()
+	protected void notifyPlayer(boolean forceUpdate, CombatantInfo player)
 	{
-		for(CombatantInfo combatant : combatants.values())
-		{
-			if(combatant.isPlayer)
-			{
-				System.out.println("Notify player turn ended packet sent.");
-				if(Utility.getEntityByID(combatant.id) == null)
-					System.out.println("WARNING: player id returned null");
-				PacketDispatcher.sendPacketToPlayer(new BattlePhaseEndedPacket().makePacket(), (Player)Utility.getEntityByID(combatant.id));
-			}
-		}
+		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded || player.entityReference.isDead, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready).makePacket(), (Player)player.entityReference);
 	}
+	
+//	protected void notifyPlayersTurnEnded()
+//	{
+//		for(CombatantInfo combatant : combatants.values())
+//		{
+//			if(combatant.isPlayer)
+//			{
+//				PacketDispatcher.sendPacketToPlayer(new BattlePhaseEndedPacket().makePacket(), (Player)combatant.entityReference);
+//			}
+//		}
+//	}
 	
 	protected void notifyPlayerOfCombatants(EntityLiving player)
 	{
@@ -323,6 +388,5 @@ public class Battle{
 			PacketDispatcher.sendPacketToPlayer(new BattleCombatantPacket(combatant).makePacket(), (Player)player);
 		}
 	}
-	
 	
 }

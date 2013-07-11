@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 
 import burnedkirby.TurnBasedBattleMod.ModMain;
+import burnedkirby.TurnBasedBattleMod.gui.BattleGui;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
@@ -20,12 +21,25 @@ public class BattleStatusPacket extends CommandPacket {
 	boolean found;
 	boolean forceUpdate;
 	int battleSize;
+	boolean playerPhase;
+	boolean turnChoiceReceived;
 	
-	public BattleStatusPacket(boolean found, boolean forceUpdate, int battleSize)
+	public BattleStatusPacket(boolean found)
+	{
+		this.found = found;
+		forceUpdate = false;
+		battleSize = 0;
+		playerPhase = false;
+		turnChoiceReceived = false;
+	}
+	
+	public BattleStatusPacket(boolean found, boolean forceUpdate, int battleSize, boolean playerPhase, boolean turnChoiceReceived)
 	{
 		this.found = found;
 		this.forceUpdate = forceUpdate;
 		this.battleSize = battleSize;
+		this.playerPhase = playerPhase;
+		this.turnChoiceReceived = turnChoiceReceived;
 	}
 	
 	public BattleStatusPacket()
@@ -36,6 +50,8 @@ public class BattleStatusPacket extends CommandPacket {
 		out.writeBoolean(found);
 		out.writeBoolean(forceUpdate);
 		out.writeInt(battleSize);
+		out.writeBoolean(playerPhase);
+		out.writeBoolean(turnChoiceReceived);
 	}
 
 	@Override
@@ -43,6 +59,8 @@ public class BattleStatusPacket extends CommandPacket {
 		found = in.readBoolean();
 		forceUpdate = in.readBoolean();
 		battleSize = in.readInt();
+		playerPhase = in.readBoolean();
+		turnChoiceReceived = in.readBoolean();
 	}
 
 	@Override
@@ -54,11 +72,19 @@ public class BattleStatusPacket extends CommandPacket {
 		}
 		else
 		{
-			if(found)// && ModMain.bg != null) //TODO check if null pointer exception can happen
+			System.out.println("BattleStatusPacket: received playerPhase is " + playerPhase + ", turnReceived is " + turnChoiceReceived);
+			if(found) //TODO check if null pointer exception can happen
 			{
-				ModMain.bg.checkBattleInfo(forceUpdate, battleSize);
+				if(ModMain.bg == null && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
+				{
+					Minecraft.getMinecraft().setIngameFocus();
+					return;
+				}
+				else if(ModMain.bg == null)
+					return;
+				ModMain.bg.checkBattleInfo(forceUpdate, battleSize, playerPhase, turnChoiceReceived);
 			}
-			else// if(!found)
+			else if(!found && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
 			{
 				Minecraft.getMinecraft().setIngameFocus();
 			}
