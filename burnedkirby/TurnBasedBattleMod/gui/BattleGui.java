@@ -5,7 +5,7 @@ import java.util.List;
 
 import burnedkirby.TurnBasedBattleMod.CombatantInfo;
 import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
-import burnedkirby.TurnBasedBattleMod.ModMain;
+import burnedkirby.TurnBasedBattleMod.core.ClientProxy;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleCommandPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleQueryPacket;
 
@@ -51,7 +51,7 @@ public class BattleGui extends GuiScreen {
 	 */
 	@Override
 	public void initGui() {
-		ModMain.bg = this;
+		ClientProxy.bg = this;
 		info[0] = "";
 		info[1] = "";
 		getMenu(-2);
@@ -267,7 +267,7 @@ public class BattleGui extends GuiScreen {
 	 */
 	@Override
 	public void onGuiClosed() {
-		ModMain.bg = null;
+		ClientProxy.bg = null;
 	}
 	
 	/**

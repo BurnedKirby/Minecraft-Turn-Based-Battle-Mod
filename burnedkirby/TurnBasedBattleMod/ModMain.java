@@ -7,7 +7,6 @@ package burnedkirby.TurnBasedBattleMod;
 import burnedkirby.TurnBasedBattleMod.core.CommonProxy;
 import burnedkirby.TurnBasedBattleMod.core.network.CommandPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.CommandPacketHandler;
-import burnedkirby.TurnBasedBattleMod.gui.BattleGui;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.creativetab.CreativeTabs;
@@ -45,9 +44,6 @@ public class ModMain {
 	
 	public static BattleSystemServer bss = new BattleSystemServer();
 	
-	//Unique GUI per client. (null version may exist server side)
-	public static BattleGui bg = null;
-
 	@Init
 	public void initialize(FMLInitializationEvent event){
 		MinecraftForge.EVENT_BUS.register(new BattleEventListener());

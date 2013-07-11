@@ -7,7 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 
 import burnedkirby.TurnBasedBattleMod.CombatantInfo;
 import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
-import burnedkirby.TurnBasedBattleMod.ModMain;
+import burnedkirby.TurnBasedBattleMod.core.ClientProxy;
 import burnedkirby.TurnBasedBattleMod.gui.EntityInfo;
 
 import com.google.common.io.ByteArrayDataInput;
@@ -65,7 +65,7 @@ public class BattleCombatantPacket extends CommandPacket {
 		}
 		else
 		{
-			ModMain.bg.receiveCombatant(combatant);
+			ClientProxy.bg.receiveCombatant(combatant);
 		}
 	}
 

@@ -9,6 +9,8 @@ import net.minecraft.entity.player.EntityPlayer;
 
 import burnedkirby.TurnBasedBattleMod.CombatantInfo;
 import burnedkirby.TurnBasedBattleMod.ModMain;
+import burnedkirby.TurnBasedBattleMod.core.ClientProxy;
+import burnedkirby.TurnBasedBattleMod.core.CommonProxy;
 import burnedkirby.TurnBasedBattleMod.gui.BattleGui;
 
 import com.google.common.io.ByteArrayDataInput;
@@ -61,8 +63,7 @@ public class InitiateBattlePacket extends CommandPacket {
 		}
 		else
 		{
-			ModMain.bg = new BattleGui(battleID,this.player);
-			Minecraft.getMinecraft().displayGuiScreen(ModMain.bg);
+			ModMain.proxy.newGui(battleID, this.player);
 		}
 	}
 

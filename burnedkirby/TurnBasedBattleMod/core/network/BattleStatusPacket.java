@@ -3,7 +3,7 @@ package burnedkirby.TurnBasedBattleMod.core.network;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 
-import burnedkirby.TurnBasedBattleMod.ModMain;
+import burnedkirby.TurnBasedBattleMod.core.ClientProxy;
 import burnedkirby.TurnBasedBattleMod.gui.BattleGui;
 
 import com.google.common.io.ByteArrayDataInput;
@@ -75,14 +75,14 @@ public class BattleStatusPacket extends CommandPacket {
 			System.out.println("BattleStatusPacket: received playerPhase is " + playerPhase + ", turnReceived is " + turnChoiceReceived);
 			if(found) //TODO check if null pointer exception can happen
 			{
-				if(ModMain.bg == null && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
+				if(ClientProxy.bg == null && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
 				{
 					Minecraft.getMinecraft().setIngameFocus();
 					return;
 				}
-				else if(ModMain.bg == null)
+				else if(ClientProxy.bg == null)
 					return;
-				ModMain.bg.checkBattleInfo(forceUpdate, battleSize, playerPhase, turnChoiceReceived);
+				ClientProxy.bg.checkBattleInfo(forceUpdate, battleSize, playerPhase, turnChoiceReceived);
 			}
 			else if(!found && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
 			{

@@ -41,7 +41,7 @@ public class BattleSystemServer {
 	public BattleSystemServer()
 	{
 		battles = new TreeMap<Integer,Battle>();
-		random = new Random(Minecraft.getMinecraft().getSystemTime());
+		random = new Random(System.currentTimeMillis());
 		battleUpdateThread = null;
 		attackingEntity = null;
 		attackingLock = new Object();
