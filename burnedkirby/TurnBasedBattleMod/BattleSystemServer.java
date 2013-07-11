@@ -18,6 +18,7 @@ import cpw.mods.fml.common.network.Player;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.MinecraftException;
@@ -58,12 +59,13 @@ public class BattleSystemServer {
 	 */
 	public boolean manageCombatants(EntityLiving entityAttacker, EntityLiving entityAttacked)
 	{
+		if(entityAttacker instanceof EntityCreeper)
+			return false;
+		
 		boolean returnValue = false;
 		short inBattle = 0x0;
 		inBattle |= isInBattle(entityAttacker.entityId) ? 0x1 : 0x0;
 		inBattle |= isInBattle(entityAttacked.entityId) ? 0x2 : 0x0;
-		
-		System.out.println("inbattle: " + inBattle);
 
 		switch(inBattle)
 		{
@@ -193,6 +195,11 @@ public class BattleSystemServer {
 	{
 		synchronized(battles)
 		{
+			if(battles.get(battleID) == null)
+			{
+				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false).makePacket(), (Player)player.entityReference);
+				return;
+			}
 			battles.get(battleID).updatePlayerStatus(player);
 		}
 	}
@@ -217,6 +224,7 @@ public class BattleSystemServer {
 					
 					while(!removalQueue.isEmpty())
 					{
+						System.out.println("Battle removed.");
 						battles.remove(removalQueue.pop());
 					}
 					
@@ -224,7 +232,7 @@ public class BattleSystemServer {
 						return;
 				}
 				try {
-					Thread.sleep(1500);
+					Thread.sleep(500);
 				} catch (InterruptedException e) {}
 			}
 		}

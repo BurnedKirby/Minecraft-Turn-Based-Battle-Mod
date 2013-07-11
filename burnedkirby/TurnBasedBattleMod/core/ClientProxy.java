@@ -7,7 +7,7 @@ import burnedkirby.TurnBasedBattleMod.gui.BattleGui;
 public class ClientProxy extends CommonProxy {
 
 	//Unique GUI per client. (null version may exist server side)
-	public static BattleGui bg = null;
+	public BattleGui bg = null;
 
 	public ClientProxy()
 	{
@@ -17,5 +17,15 @@ public class ClientProxy extends CommonProxy {
 	{
 		bg = new BattleGui(battleID, player);
 		Minecraft.getMinecraft().displayGuiScreen(bg);
+	}
+	
+	public Object getGui()
+	{
+		return bg;
+	}
+	
+	public void setGui(Object gui)
+	{
+		bg = (BattleGui) gui;
 	}
 }

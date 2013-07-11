@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import burnedkirby.TurnBasedBattleMod.CombatantInfo;
+import burnedkirby.TurnBasedBattleMod.ModMain;
 import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
 import burnedkirby.TurnBasedBattleMod.core.ClientProxy;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleCommandPacket;
@@ -37,6 +38,9 @@ public class BattleGui extends GuiScreen {
 	
 	private int currentMenu;
 	
+	private int updateTick;
+	private final int updateWaitTime = 400;
+	
 	public BattleGui(int battleID, CombatantInfo player)
 	{
 		this.battleID = battleID;
@@ -44,6 +48,7 @@ public class BattleGui extends GuiScreen {
 		player.ready = true;
 		
 		combatants = new LinkedList<CombatantInfo>();
+		updateTick = updateWaitTime;
 	}
 	
 	/**
@@ -51,7 +56,7 @@ public class BattleGui extends GuiScreen {
 	 */
 	@Override
 	public void initGui() {
-		ClientProxy.bg = this;
+		ModMain.proxy.setGui(this);
 		info[0] = "";
 		info[1] = "";
 		getMenu(-2);
@@ -94,6 +99,7 @@ public class BattleGui extends GuiScreen {
 	public void update(boolean playerPhase, boolean turnChoiceReceived)
 	{
 		System.out.println("Update called, turnSentBool is" + turnChoiceSent);
+		updateTick = updateWaitTime;
 		if(playerPhase && !updatingCombatants)
 		{
 			if(turnChoiceReceived && !turnChoiceSent)
@@ -130,6 +136,12 @@ public class BattleGui extends GuiScreen {
 		if(info[1] != "")
 			Minecraft.getMinecraft().fontRenderer.drawString(info[1], width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[1])/2, height - 80, 0xffffffff);
 		
+		updateTick--;
+		if(updateTick==0)
+		{
+			PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 0).makePacket());
+			updateTick = updateWaitTime;
+		}
 	}
 	
 	/**
@@ -205,10 +217,10 @@ public class BattleGui extends GuiScreen {
 			break;
 		case 1: //Fight menu
 			info[0] = "What will you do?";
-			buttonList.add(new GuiButton(3, width/6 - 40, height - 40, 80, 20, "Attack"));
+			buttonList.add(new GuiButton(3, width/6 - 40, height - 72, 80, 20, "Attack"));
 			//controlList.add(new GuiButton(5, width*2/5 - 40, height - 72, 80, 20, "Use Item"));
-			buttonList.add(new GuiButton(4, width*3/5 - 40, height - 72, 80, 20, "Change Weapon"));
-			buttonList.add(new GuiButton(0, width*5/6 - 40, height - 40, 80, 20, "Cancel"));
+			//buttonList.add(new GuiButton(4, width*3/5 - 40, height - 72, 80, 20, "Change Weapon"));
+			buttonList.add(new GuiButton(0, width*5/6 - 40, height - 72, 80, 20, "Cancel"));
 			break;
 		case 2: //Flee status
 			info[0] = "You attempt to flee!";
@@ -267,7 +279,7 @@ public class BattleGui extends GuiScreen {
 	 */
 	@Override
 	public void onGuiClosed() {
-		ClientProxy.bg = null;
+		ModMain.proxy.setGui(null);
 	}
 	
 	/**
@@ -276,5 +288,9 @@ public class BattleGui extends GuiScreen {
 	@Override
 	public boolean doesGuiPauseGame() {
 		return false;
+	}
+
+	@Override
+	protected void keyTyped(char par1, int par2) {
 	}
 }

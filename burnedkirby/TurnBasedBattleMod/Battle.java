@@ -22,6 +22,7 @@ import cpw.mods.fml.common.network.Player;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
@@ -151,7 +152,6 @@ public class Battle{
 	{
 		for(CombatantInfo combatant : combatants.values())
 		{
-			System.out.println("getPlayersReady: " + combatant.ready);
 			if(combatant.isPlayer && !combatant.ready)
 				return false;
 		}
@@ -195,7 +195,17 @@ public class Battle{
 			combatants.put(combatant.id, combatant);
 		}
 		
+		Iterator<CombatantInfo> iter = combatants.values().iterator();
+		while(iter.hasNext())
+		{
+			if(iter.next().entityReference.getHealth() <= 0)
+				iter.remove();
+		}
+
 		notifyPlayers(forceUpdate);
+		
+		checkIfBattleEnded();
+		
 		
 		if(getPlayersReady())
 		{
@@ -235,7 +245,7 @@ public class Battle{
 		EntityLiving combatantEntity;
 		EntityLiving targetEntity;
 		CombatantInfo[] combatantArray = combatants.values().toArray(new CombatantInfo[0]);
-//		int rand;
+		int rand;
 		for(int i=0; i < combatantArray.length; i++)
 		{
 			combatant = combatantArray[i];
@@ -243,7 +253,7 @@ public class Battle{
 				continue;
 			
 			combatantEntity = combatant.entityReference;
-			if(combatantEntity.isDead)
+			if(combatantEntity.getHealth() <= 0)
 				continue;
 			
 			synchronized(ModMain.bss.attackingLock)
@@ -251,7 +261,7 @@ public class Battle{
 				if(combatant.isPlayer)
 				{
 					targetEntity = combatants.get(combatant.target).entityReference;
-					if(targetEntity.isDead || !combatants.containsKey(targetEntity.entityId))
+					if(targetEntity.getHealth() < 0 || !combatants.containsKey(targetEntity.entityId))
 						continue;
 					targetEntity.hurtResistantTime = 0;
 					ModMain.bss.attackingEntity = combatantEntity;
@@ -259,19 +269,32 @@ public class Battle{
 				}
 				else if(combatantEntity instanceof EntityMob)
 				{
-//					rand = ModMain.bss.random.nextInt(combatants.size()) + combatants.size();
-//					int k=0,j=0,picked=0;
-//					for(; j<rand; k++)
-//					{
-//						if(combatantArray[k % combatantArray.length].isPlayer)
-//						{
-//							j++;
-//							picked = k % combatantArray.length;
-//						}
-//					}
-//					targetEntity = combatantArray[picked].entityReference;
-//					System.out.println("Picked " + targetEntity.getEntityName());
-					targetEntity = combatantEntity.getAttackTarget();
+					if(((EntityCreature)combatantEntity).getEntityToAttack() instanceof EntityLiving)
+						targetEntity = (EntityLiving) ((EntityMob)combatantEntity).getEntityToAttack();
+					else
+						targetEntity = null;
+					
+					if(targetEntity == null)
+					{
+						rand = ModMain.bss.random.nextInt(combatants.size()) + combatants.size();
+						int k=0,j=0,picked=0;
+						for(; j<rand; k++)
+						{
+							if(combatantArray[k % combatantArray.length].isPlayer)
+							{
+								j++;
+								picked = k % combatantArray.length;
+							}
+							if(k > combatants.size() && j == 0)
+							{
+								picked = -1;
+								break;
+							}
+						}
+						if(picked == -1)
+							continue;
+						targetEntity = combatantArray[picked].entityReference;
+					}
 					targetEntity.hurtResistantTime = 0;
 					ModMain.bss.attackingEntity = combatantEntity;
 					((EntityMob)combatantEntity).attackEntityAsMob(targetEntity);
@@ -302,17 +325,21 @@ public class Battle{
 		while(iter.hasNext())
 		{
 			combatantRef = iter.next();
-			if(combatantRef.entityReference.isDead)
+			if(combatantRef.entityReference.getHealth() <= 0)
 			{
-				iter.remove();
+				System.out.println("Entity is dead, removing");
 				if(combatantRef.isPlayer)
 					notifyPlayer(false, combatantRef, false);
+				iter.remove();
 				continue;
 			}
 
-			defaultInfo.target = combatantRef.target;
-			defaultInfo.id = combatantRef.id;
-			combatantRef.updateBattleInformation(defaultInfo);
+			if(combatantRef.isPlayer)
+			{
+				defaultInfo.target = combatantRef.target;
+				defaultInfo.id = combatantRef.id;
+				combatantRef.updateBattleInformation(defaultInfo);
+			}
 		}
 		
 		checkIfBattleEnded();
@@ -374,13 +401,14 @@ public class Battle{
 		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.isPlayer)
-				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !combatant.entityReference.isDead, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready).makePacket(), (Player)combatant.entityReference);
+				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !(combatant.entityReference.getHealth() <= 0), forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready).makePacket(), (Player)combatant.entityReference);
 		}
 	}
 	
 	protected void notifyPlayer(boolean forceUpdate, CombatantInfo player, boolean fledBattle)
 	{
-		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !player.entityReference.isDead && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready).makePacket(), (Player)player.entityReference);
+		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !(player.entityReference.getHealth() <= 0) && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready).makePacket(), (Player)player.entityReference);
+		System.out.println("Sent packet with battle state (is over) " + (!battleEnded && !(player.entityReference.getHealth() <= 0) && !fledBattle));
 	}
 	
 //	protected void notifyPlayersTurnEnded()

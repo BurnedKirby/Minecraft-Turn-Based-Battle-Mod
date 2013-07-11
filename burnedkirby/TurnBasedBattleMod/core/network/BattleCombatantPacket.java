@@ -6,9 +6,10 @@ import java.io.IOException;
 import net.minecraft.entity.player.EntityPlayer;
 
 import burnedkirby.TurnBasedBattleMod.CombatantInfo;
+import burnedkirby.TurnBasedBattleMod.ModMain;
 import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
 import burnedkirby.TurnBasedBattleMod.core.ClientProxy;
-import burnedkirby.TurnBasedBattleMod.gui.EntityInfo;
+import burnedkirby.TurnBasedBattleMod.gui.BattleGui;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
@@ -65,7 +66,7 @@ public class BattleCombatantPacket extends CommandPacket {
 		}
 		else
 		{
-			ClientProxy.bg.receiveCombatant(combatant);
+			((BattleGui)ModMain.proxy.getGui()).receiveCombatant(combatant);
 		}
 	}
 
