@@ -8,7 +8,7 @@ This mod is still in development, as in it is not finished.
 
 Mod currently compiles on Minecraft Forge 1.5.2-7.8.1.738
 
-Development for Minecraft version 1.6.2 will begin when the release version of Minecraft Forge for that version is released.
+Development for Minecraft version 1.6.2 can be seen in the 1.6.2 branch.
 
 
 To use, check out the Downloads page on the wiki to get the latest compiled version of the mod as well as instructions.
