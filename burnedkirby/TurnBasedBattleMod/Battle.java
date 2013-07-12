@@ -26,6 +26,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.server.MinecraftServer;
@@ -72,6 +73,10 @@ public class Battle{
 			else if(combatant.entityReference instanceof EntityMob)
 			{
 				combatant.type = Type.ATTACK;
+			}
+			else if(combatant.entityReference instanceof EntityAnimal)
+			{
+				combatant.type = Type.FLEE;
 			}
 			combatants.put(combatant.id, combatant);
 		}
@@ -253,8 +258,6 @@ public class Battle{
 					notifyPlayer(false, combatant, true);
 				messageQueue.push(combatant);
 			}
-			
-			combatant.type = Type.DO_NOTHING;
 		}
 		
 		while(!messageQueue.isEmpty())
@@ -281,8 +284,12 @@ public class Battle{
 			{
 				if(combatant.isPlayer)
 				{
-					targetEntity = combatants.get(combatant.target).entityReference;
-					if(targetEntity.getHealth() < 0 || !combatants.containsKey(targetEntity.entityId))
+					if(combatants.get(combatant.target) != null)
+						targetEntity = combatants.get(combatant.target).entityReference;
+					else
+						targetEntity = null;
+					
+					if(targetEntity == null || targetEntity.getHealth() < 0 || !combatants.containsKey(targetEntity.entityId))
 						continue;
 					targetEntity.hurtResistantTime = 0;
 					notifyPlayersWithMessage(combatantEntity.getEntityName() + " attacks " + targetEntity.getEntityName() + "!");
@@ -403,7 +410,10 @@ public class Battle{
 		}
 		
 		if(sideOne == 0 || sideTwo == 0 || players == 0)
+		{
 			battleEnded = true;
+			System.out.println("Battle " + battleID + " ended.");
+		}
 	}
 	
 	private boolean fleeCheck(CombatantInfo fleeingCombatant)
