@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleCombatantPacket;
+import burnedkirby.TurnBasedBattleMod.core.network.BattleMessagePacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattlePhaseEndedPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleStatusPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.InitiateBattlePacket;
@@ -95,6 +96,7 @@ public class Battle{
 				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,newCombatant).makePacket(), (Player)newCombatant.entityReference);
 			
 			notifyPlayers(true);
+			notifyPlayersWithMessage(newCombatant.name + " has entered battle!");
 		}
 		else
 		{
@@ -193,14 +195,26 @@ public class Battle{
 		{
 			CombatantInfo combatant = newCombatantQueue.pop();
 			combatants.put(combatant.id, combatant);
+			notifyPlayersWithMessage(combatant.name + " has entered battle!");
 		}
 		
 		Iterator<CombatantInfo> iter = combatants.values().iterator();
+		Stack<CombatantInfo> messageQueue = new Stack<CombatantInfo>();
+		CombatantInfo combatant;
 		while(iter.hasNext())
 		{
-			if(iter.next().entityReference.getHealth() <= 0)
+			combatant = iter.next();
+			if(combatant.entityReference.getHealth() <= 0)
+			{
 				iter.remove();
+				if(!combatant.isPlayer)
+					messageQueue.push(combatant);
+			}
+			
 		}
+		
+		while(!messageQueue.isEmpty())
+			notifyPlayersWithMessage(messageQueue.pop().name + " has died!");
 
 		notifyPlayers(forceUpdate);
 		
@@ -224,6 +238,7 @@ public class Battle{
 		
 		//Combatant flee phase
 		Iterator<CombatantInfo> iter = combatants.values().iterator();
+		Stack<CombatantInfo> messageQueue = new Stack<CombatantInfo>();
 		CombatantInfo combatant;
 		while(iter.hasNext())
 		{
@@ -236,9 +251,15 @@ public class Battle{
 				iter.remove();
 				if(combatant.isPlayer)
 					notifyPlayer(false, combatant, true);
+				messageQueue.push(combatant);
 			}
 			
 			combatant.type = Type.DO_NOTHING;
+		}
+		
+		while(!messageQueue.isEmpty())
+		{
+			notifyPlayersWithMessage(messageQueue.pop().name + " has fled battle!");
 		}
 		
 		//Combatant attack phase
@@ -264,6 +285,7 @@ public class Battle{
 					if(targetEntity.getHealth() < 0 || !combatants.containsKey(targetEntity.entityId))
 						continue;
 					targetEntity.hurtResistantTime = 0;
+					notifyPlayersWithMessage(combatantEntity.getEntityName() + " attacks " + targetEntity.getEntityName() + "!");
 					ModMain.bss.attackingEntity = combatantEntity;
 					((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
 				}
@@ -296,6 +318,7 @@ public class Battle{
 						targetEntity = combatantArray[picked].entityReference;
 					}
 					targetEntity.hurtResistantTime = 0;
+					notifyPlayersWithMessage(combatantEntity.getEntityName() + " attacks " + targetEntity.getEntityName() + "!");
 					ModMain.bss.attackingEntity = combatantEntity;
 					((EntityMob)combatantEntity).attackEntityAsMob(targetEntity);
 				}
@@ -321,6 +344,7 @@ public class Battle{
 		CombatantInfo defaultInfo = new CombatantInfo();
 		defaultInfo.ready = false;
 		defaultInfo.type = Type.DO_NOTHING;
+		Stack<CombatantInfo> messageQueue = new Stack<CombatantInfo>();
 		
 		while(iter.hasNext())
 		{
@@ -330,6 +354,8 @@ public class Battle{
 				System.out.println("Entity is dead, removing");
 				if(combatantRef.isPlayer)
 					notifyPlayer(false, combatantRef, false);
+				else
+					messageQueue.push(combatantRef);
 				iter.remove();
 				continue;
 			}
@@ -341,6 +367,9 @@ public class Battle{
 				combatantRef.updateBattleInformation(defaultInfo);
 			}
 		}
+		
+		while(!messageQueue.isEmpty())
+			notifyPlayersWithMessage(messageQueue.pop().name + " has died!");
 		
 		checkIfBattleEnded();
 		
@@ -409,6 +438,17 @@ public class Battle{
 	{
 		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !(player.entityReference.getHealth() <= 0) && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready).makePacket(), (Player)player.entityReference);
 		System.out.println("Sent packet with battle state (is over) " + (!battleEnded && !(player.entityReference.getHealth() <= 0) && !fledBattle));
+	}
+	
+	protected void notifyPlayersWithMessage(String message)
+	{
+		for(CombatantInfo combatant : combatants.values())
+		{
+			if(combatant.isPlayer)
+			{
+				PacketDispatcher.sendPacketToPlayer(new BattleMessagePacket(message).makePacket(), (Player) combatant.entityReference);
+			}
+		}
 	}
 	
 //	protected void notifyPlayersTurnEnded()

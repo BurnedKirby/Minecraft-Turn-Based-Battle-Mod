@@ -124,8 +124,8 @@ public class BattleGui extends GuiScreen {
 	 */
 	@Override
 	public void drawScreen(int par1, int par2, float par3) {
-		drawRect(0, 0, width, height, 0xa0000000 | bgColor);
-		drawRect(0, height*6/10, width, height, 0x70000000 | bgColor);
+		drawRect(0, 0, width, height*5/6, 0xa0000000 | bgColor);
+		//drawRect(0, height*6/10, width, height*5/6, 0x70000000 | bgColor);
 		
 		drawCombatants();
 
@@ -212,8 +212,8 @@ public class BattleGui extends GuiScreen {
 			break;
 		case 0: //Main menu
 			info[0] = "What will you do?";
-			buttonList.add(new GuiButton(1, width/6 - 40, height - 40, 80, 20, "Fight"));
-			buttonList.add(new GuiButton(2, width*5/6 - 40, height - 40, 80, 20, "Flee"));
+			buttonList.add(new GuiButton(1, width*2/6 - 40, height - 72, 80, 20, "Fight"));
+			buttonList.add(new GuiButton(2, width*4/6 - 40, height - 72, 80, 20, "Flee"));
 			break;
 		case 1: //Fight menu
 			info[0] = "What will you do?";
