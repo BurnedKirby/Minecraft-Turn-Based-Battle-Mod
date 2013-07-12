@@ -26,6 +26,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
@@ -214,7 +215,7 @@ public class Battle{
 		while(iter.hasNext())
 		{
 			combatant = iter.next();
-			if(combatant.entityReference.getHealth() <= 0)
+			if(combatant.entityReference.getHealth() <= 0 || combatant.entityReference.isDead)
 			{
 				iter.remove();
 				if(!combatant.isPlayer)
@@ -288,7 +289,7 @@ public class Battle{
 				continue;
 			
 			combatantEntity = combatant.entityReference;
-			if(combatantEntity.getHealth() <= 0)
+			if(combatantEntity.getHealth() <= 0 || combatantEntity.isDead)
 				continue;
 			
 			synchronized(ModMain.bss.attackingLock)
@@ -300,7 +301,7 @@ public class Battle{
 					else
 						targetEntity = null;
 					
-					if(targetEntity == null || targetEntity.getHealth() < 0 || !combatants.containsKey(targetEntity.entityId))
+					if(targetEntity == null || targetEntity.getHealth() <= 0 || targetEntity.isDead || !combatants.containsKey(targetEntity.entityId))
 						continue;
 					targetEntity.hurtResistantTime = 0;
 					notifyPlayersWithMessage(combatantEntity.getEntityName() + " attacks " + targetEntity.getEntityName() + "!");
@@ -367,7 +368,7 @@ public class Battle{
 		while(iter.hasNext())
 		{
 			combatantRef = iter.next();
-			if(combatantRef.entityReference.getHealth() <= 0)
+			if(combatantRef.entityReference.getHealth() <= 0 || combatantRef.entityReference.isDead)
 			{
 				System.out.println("Entity is dead, removing");
 				if(combatantRef.isPlayer)
@@ -451,14 +452,14 @@ public class Battle{
 		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.isPlayer)
-				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !(combatant.entityReference.getHealth() <= 0), forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready).makePacket(), (Player)combatant.entityReference);
+				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !(combatant.entityReference.getHealth() <= 0 || combatant.entityReference.isDead), forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready).makePacket(), (Player)combatant.entityReference);
 		}
 	}
 	
 	protected void notifyPlayer(boolean forceUpdate, CombatantInfo player, boolean fledBattle)
 	{
-		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !(player.entityReference.getHealth() <= 0) && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready).makePacket(), (Player)player.entityReference);
-		System.out.println("Sent packet with battle state (is over) " + (!battleEnded && !(player.entityReference.getHealth() <= 0) && !fledBattle));
+		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && !(player.entityReference.getHealth() <= 0 || player.entityReference.isDead) && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready).makePacket(), (Player)player.entityReference);
+		System.out.println("Sent packet with battle state (is over) " + (!battleEnded && !(player.entityReference.getHealth() <= 0 || player.entityReference.isDead) && !fledBattle));
 	}
 	
 	protected void notifyPlayersWithMessage(String message)
