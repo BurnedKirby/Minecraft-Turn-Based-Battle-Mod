@@ -27,6 +27,9 @@ public class CombatantInfo{
 	
 	public int target;
 	
+	// This is currentHealth / maxhealth * 10 rounded to a whole number.
+	public short healthRatio;
+	
 	
 	public CombatantInfo()
 	{
@@ -74,6 +77,11 @@ public class CombatantInfo{
 		target = newInfo.target;
 		type = newInfo.type;
 		return true;
+	}
+	
+	public void updateHealthRatio(short healthRatio)
+	{
+		this.healthRatio = healthRatio;
 	}
 	
 	@Override

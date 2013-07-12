@@ -16,6 +16,7 @@ import burnedkirby.TurnBasedBattleMod.core.network.BattleCombatantPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleMessagePacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattlePhaseEndedPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleStatusPacket;
+import burnedkirby.TurnBasedBattleMod.core.network.CombatantHealthRatioPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.InitiateBattlePacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -48,6 +49,9 @@ public class Battle{
 //	private boolean phaseInProgress;
 	
 	protected boolean battleEnded;
+	
+	private short healthUpdateTick;
+	private final short healthUpdateTime = 4;
 	
 	public Battle(int id)
 	{
@@ -84,6 +88,7 @@ public class Battle{
 		status = BattleStatus.PLAYER_PHASE;
 		battleEnded = false;
 //		phaseInProgress = false;
+		healthUpdateTick = healthUpdateTime;
 	}
 	
 	public void addCombatant(CombatantInfo newCombatant)
@@ -233,6 +238,12 @@ public class Battle{
 		}
 		
 //		phaseInProgress = false;
+		
+		if(--healthUpdateTick == 0)
+		{
+			notifyPlayersHealthInformation();
+			healthUpdateTick = healthUpdateTime;
+		}
 	}
 	
 	private void calculationsPhase()
@@ -480,4 +491,23 @@ public class Battle{
 		}
 	}
 	
+	protected void notifyPlayersHealthInformation()
+	{
+		CombatantInfo[] combatantListCopy = combatants.values().toArray(new CombatantInfo[0]);
+		for(int i=0; i<combatantListCopy.length; i++)
+		{
+			combatantListCopy[i].updateHealthRatio((short)((float)combatantListCopy[i].entityReference.getHealth() / (float)combatantListCopy[i].entityReference.getMaxHealth() * 10.0f));
+		}
+		
+		for(int i=0; i<combatantListCopy.length; i++)
+		{
+			if(combatantListCopy[i].isPlayer)
+			{
+				for(int j=0; j<combatantListCopy.length; j++)
+				{
+					PacketDispatcher.sendPacketToPlayer(new CombatantHealthRatioPacket(combatantListCopy[j].id, combatantListCopy[j].healthRatio).makePacket(), (Player)combatantListCopy[i].entityReference);
+				}
+			}
+		}
+	}
 }

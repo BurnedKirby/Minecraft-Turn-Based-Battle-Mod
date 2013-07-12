@@ -2,6 +2,8 @@ package burnedkirby.TurnBasedBattleMod.gui;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import burnedkirby.TurnBasedBattleMod.CombatantInfo;
 import burnedkirby.TurnBasedBattleMod.ModMain;
@@ -24,7 +26,7 @@ public class BattleGui extends GuiScreen {
 	private int battleID;
 	private CombatantInfo player;
 	
-	private List<CombatantInfo> combatants;
+	private Map<Integer,CombatantInfo> combatants;
 	private int serverBattleSize;
 	private boolean updatingCombatants;
 	
@@ -41,13 +43,15 @@ public class BattleGui extends GuiScreen {
 	private int updateTick;
 	private final int updateWaitTime = 400;
 	
+	private final int nameHeightInterval = 14;
+	
 	public BattleGui(int battleID, CombatantInfo player)
 	{
 		this.battleID = battleID;
 		this.player = player;
 		player.ready = true;
 		
-		combatants = new LinkedList<CombatantInfo>();
+		combatants = new TreeMap<Integer,CombatantInfo>();
 		updateTick = updateWaitTime;
 	}
 	
@@ -81,12 +85,22 @@ public class BattleGui extends GuiScreen {
 	{
 		if(updatingCombatants)
 		{
-			combatants.add(combatant);
+			combatants.put(combatant.id, combatant);
 			if(combatants.size() == serverBattleSize)
 			{
 				updatingCombatants = false;
 				PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 0).makePacket());
 			}
+		}
+	}
+	
+	public void receiveCombatantHealthInfo(int entityID, short healthRatio)
+	{
+		if(!updatingCombatants)
+		{
+			CombatantInfo combatant = combatants.get(entityID);
+			if(combatant != null)
+				combatant.updateHealthRatio(healthRatio);
 		}
 	}
 	
@@ -149,18 +163,18 @@ public class BattleGui extends GuiScreen {
 	 */
 	public void drawCombatants()
 	{
-		int x, y1 = height/4, y2 = height/4;
-		for(CombatantInfo combatant : combatants)
+		int x, y1 = height/5, y2 = height/5;
+		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.isSideOne)
 			{
-				y1 += 10;
+				y1 += nameHeightInterval;
 				x = width/8;
 				drawCombatant(combatant,x,y1,0xFFFFFFFF);
 			}
 			else
 			{
-				y2 += 10;
+				y2 += nameHeightInterval;
 				x = width * 7 / 8;
 				drawCombatant(combatant,x,y2,0xFFFFFFFF);
 			}
@@ -192,6 +206,8 @@ public class BattleGui extends GuiScreen {
 		{
 			Minecraft.getMinecraft().fontRenderer.drawString(combatant.name, x - nameLength/2, y, color);
 		}
+		
+		drawRect(x - nameLength/2, y + 10, x - nameLength/2 + (int)((float)combatant.healthRatio / 10.0f * (float)nameLength), y + 11, 0xFFFF0000);
 	}
 
 	/**
