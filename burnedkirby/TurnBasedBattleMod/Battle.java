@@ -16,7 +16,7 @@ import burnedkirby.TurnBasedBattleMod.core.network.BattleCombatantPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleMessagePacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattlePhaseEndedPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleStatusPacket;
-import burnedkirby.TurnBasedBattleMod.core.network.CombatantHealthRatioPacket;
+import burnedkirby.TurnBasedBattleMod.core.network.CombatantHealthPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.InitiateBattlePacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -496,7 +496,9 @@ public class Battle{
 		CombatantInfo[] combatantListCopy = combatants.values().toArray(new CombatantInfo[0]);
 		for(int i=0; i<combatantListCopy.length; i++)
 		{
-			combatantListCopy[i].updateHealthRatio((short)((float)combatantListCopy[i].entityReference.getHealth() / (float)combatantListCopy[i].entityReference.getMaxHealth() * 10.0f));
+			combatantListCopy[i].updateHealth(combatantListCopy[i].entityReference.func_110143_aJ());
+//			System.out.println("Possible health is " + combatantListCopy[i].entityReference.func_110143_aJ());
+
 		}
 		
 		for(int i=0; i<combatantListCopy.length; i++)
@@ -505,7 +507,7 @@ public class Battle{
 			{
 				for(int j=0; j<combatantListCopy.length; j++)
 				{
-					PacketDispatcher.sendPacketToPlayer(new CombatantHealthRatioPacket(combatantListCopy[j].id, combatantListCopy[j].healthRatio).makePacket(), (Player)combatantListCopy[i].entityReference);
+					PacketDispatcher.sendPacketToPlayer(new CombatantHealthPacket(combatantListCopy[j].id, combatantListCopy[j].health).makePacket(), (Player)combatantListCopy[i].entityReference);
 				}
 			}
 		}

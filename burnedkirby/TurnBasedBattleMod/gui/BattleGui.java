@@ -94,13 +94,13 @@ public class BattleGui extends GuiScreen {
 		}
 	}
 	
-	public void receiveCombatantHealthInfo(int entityID, short healthRatio)
+	public void receiveCombatantHealthInfo(int entityID, float health)
 	{
 		if(!updatingCombatants)
 		{
 			CombatantInfo combatant = combatants.get(entityID);
 			if(combatant != null)
-				combatant.updateHealthRatio(healthRatio);
+				combatant.updateHealth(health);
 		}
 	}
 	
@@ -199,7 +199,7 @@ public class BattleGui extends GuiScreen {
 		{
 			if(!combatantButtonPopulated)
 			{
-				buttonList.add(new IDSelectionButton(5, combatant.id, x - nameLength/2, y, nameLength + 2, 10, combatant.name));
+				buttonList.add(new IDSelectionButton(5, combatant.id, x - nameLength/2, y, nameLength + 2, 8, combatant.name));
 			}
 		}
 		else
@@ -207,7 +207,37 @@ public class BattleGui extends GuiScreen {
 			Minecraft.getMinecraft().fontRenderer.drawString(combatant.name, x - nameLength/2, y, color);
 		}
 		
-		drawRect(x - nameLength/2, y + 10, x - nameLength/2 + (int)((float)combatant.healthRatio / 10.0f * (float)nameLength), y + 11, 0xFFFF0000);
+		//Draw Health
+		if(combatant.health > 100)
+		{
+			drawRect(x - nameLength/2 + 12, y + 10, x - nameLength/2 + 15, y + 11, 0xFF00FFFF);
+			drawRect(x - nameLength/2 + 8, y + 10, x - nameLength/2 + 11, y + 11, 0xFF00FF00);
+			drawRect(x - nameLength/2 + 4, y + 10, x - nameLength/2 + 7, y + 11, 0xFFFFFF00);
+			drawRect(x - nameLength/2, y + 10, x - nameLength/2 + 3, y + 11, 0xFFFF0000);
+			drawRect(x - nameLength/2, y + 9, x - nameLength/2 + (int)((combatant.health - 100.0f) / 200.0f * (float)nameLength), y + 10, 0xFFFFFFFF);
+		}
+		else if (combatant.health > 50)
+		{
+			drawRect(x - nameLength/2 + 8, y + 10, x - nameLength/2 + 11, y + 11, 0xFF00FF00);
+			drawRect(x - nameLength/2 + 4, y + 10, x - nameLength/2 + 7, y + 11, 0xFFFFFF00);
+			drawRect(x - nameLength/2, y + 10, x - nameLength/2 + 3, y + 11, 0xFFFF0000);
+			drawRect(x - nameLength/2, y + 9, x - nameLength/2 + (int)((combatant.health - 50.0f) / 50.0f * (float)nameLength), y + 10, 0xFF00FFFF);
+		}
+		else if (combatant.health > 20)
+		{
+			drawRect(x - nameLength/2 + 4, y + 10, x - nameLength/2 + 7, y + 11, 0xFFFFFF00);
+			drawRect(x - nameLength/2, y + 10, x - nameLength/2 + 3, y + 11, 0xFFFF0000);
+			drawRect(x - nameLength/2, y + 9, x - nameLength/2 + (int)((combatant.health - 20.0f) / 30.0f * (float)nameLength), y + 10, 0xFF00FF00);
+		}
+		else if (combatant.health > 10)
+		{
+			drawRect(x - nameLength/2, y + 10, x - nameLength/2 + 3, y + 11, 0xFFFF0000);
+			drawRect(x - nameLength/2, y + 9, x - nameLength/2 + (int)((combatant.health - 10.0f) / 10.0f * (float)nameLength), y + 10, 0xFFFFFF00);
+		}
+		else
+		{
+			drawRect(x - nameLength/2, y + 9, x - nameLength/2 + (int)(combatant.health / 10.0f * (float)nameLength), y + 10, 0xFFFF0000);
+		}
 	}
 
 	/**

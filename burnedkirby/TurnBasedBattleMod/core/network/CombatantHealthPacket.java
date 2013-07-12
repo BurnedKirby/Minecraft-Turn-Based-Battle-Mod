@@ -10,30 +10,30 @@ import com.google.common.io.ByteArrayDataOutput;
 
 import cpw.mods.fml.relauncher.Side;
 
-public class CombatantHealthRatioPacket extends CommandPacket {
+public class CombatantHealthPacket extends CommandPacket {
 	
 	int entityID;
-	short healthRatio;
+	float health;
 	
-	public CombatantHealthRatioPacket() {
+	public CombatantHealthPacket() {
 	}
 	
-	public CombatantHealthRatioPacket(int entityID, short healthRatio)
+	public CombatantHealthPacket(int entityID, float health)
 	{
 		this.entityID = entityID;
-		this.healthRatio = healthRatio;
+		this.health = health;
 	}
 
 	@Override
 	public void write(ByteArrayDataOutput out) {
 		out.writeInt(entityID);
-		out.writeShort(healthRatio);
+		out.writeFloat(health);
 	}
 
 	@Override
 	public void read(ByteArrayDataInput in) throws ProtocolException {
 		entityID = in.readInt();
-		healthRatio = in.readShort();
+		health = in.readFloat();
 	}
 
 	@Override
@@ -44,7 +44,7 @@ public class CombatantHealthRatioPacket extends CommandPacket {
 		}
 		else
 		{
-			((BattleGui)ModMain.proxy.getGui()).receiveCombatantHealthInfo(entityID, healthRatio);
+			((BattleGui)ModMain.proxy.getGui()).receiveCombatantHealthInfo(entityID, health);
 		}
 	}
 
