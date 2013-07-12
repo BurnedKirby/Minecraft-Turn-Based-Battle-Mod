@@ -30,6 +30,7 @@ public abstract class CommandPacket {
 		builder.put(Integer.valueOf(4), BattleCombatantPacket.class);
 		builder.put(Integer.valueOf(5), BattlePhaseEndedPacket.class);
 		builder.put(Integer.valueOf(6), BattleMessagePacket.class);
+		builder.put(Integer.valueOf(7), CombatantHealthRatioPacket.class);
 		
 		idMap = builder.build();
 	}

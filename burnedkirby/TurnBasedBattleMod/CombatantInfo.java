@@ -5,7 +5,7 @@ import net.minecraft.entity.EntityLivingBase;
 public class CombatantInfo{
 	
 	public enum Type {
-		DO_NOTHING, ATTACK, FLEE
+		DO_NOTHING, ATTACK, FLEE, CHANGE_ITEM
 	}
 	
 	public boolean isPlayer;
@@ -26,6 +26,9 @@ public class CombatantInfo{
 	public Type type;
 	
 	public int target;
+	
+	// This is currentHealth / maxhealth * 10 rounded to a whole number.
+	public short healthRatio;
 	
 	
 	public CombatantInfo()
@@ -74,6 +77,11 @@ public class CombatantInfo{
 		target = newInfo.target;
 		type = newInfo.type;
 		return true;
+	}
+	
+	public void updateHealthRatio(short healthRatio)
+	{
+		this.healthRatio = healthRatio;
 	}
 	
 	@Override

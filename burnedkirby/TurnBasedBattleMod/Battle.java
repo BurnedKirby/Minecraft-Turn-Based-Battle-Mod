@@ -16,6 +16,7 @@ import burnedkirby.TurnBasedBattleMod.core.network.BattleCombatantPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleMessagePacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattlePhaseEndedPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.BattleStatusPacket;
+import burnedkirby.TurnBasedBattleMod.core.network.CombatantHealthRatioPacket;
 import burnedkirby.TurnBasedBattleMod.core.network.InitiateBattlePacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -26,6 +27,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.server.MinecraftServer;
@@ -47,6 +49,9 @@ public class Battle{
 //	private boolean phaseInProgress;
 	
 	protected boolean battleEnded;
+	
+	private short healthUpdateTick;
+	private final short healthUpdateTime = 4;
 	
 	public Battle(int id)
 	{
@@ -73,12 +78,17 @@ public class Battle{
 			{
 				combatant.type = Type.ATTACK;
 			}
+			else if(combatant.entityReference instanceof EntityAnimal)
+			{
+				combatant.type = Type.FLEE;
+			}
 			combatants.put(combatant.id, combatant);
 		}
 		
 		status = BattleStatus.PLAYER_PHASE;
 		battleEnded = false;
 //		phaseInProgress = false;
+		healthUpdateTick = healthUpdateTime;
 	}
 	
 	public void addCombatant(CombatantInfo newCombatant)
@@ -228,6 +238,12 @@ public class Battle{
 		}
 		
 //		phaseInProgress = false;
+		
+		if(--healthUpdateTick == 0)
+		{
+			notifyPlayersHealthInformation();
+			healthUpdateTick = healthUpdateTime;
+		}
 	}
 	
 	private void calculationsPhase()
@@ -253,8 +269,6 @@ public class Battle{
 					notifyPlayer(false, combatant, true);
 				messageQueue.push(combatant);
 			}
-			
-			combatant.type = Type.DO_NOTHING;
 		}
 		
 		while(!messageQueue.isEmpty())
@@ -281,8 +295,12 @@ public class Battle{
 			{
 				if(combatant.isPlayer)
 				{
-					targetEntity = combatants.get(combatant.target).entityReference;
-					if(!targetEntity.isEntityAlive() || !combatants.containsKey(targetEntity.entityId))
+					if(combatants.get(combatant.target) != null)
+						targetEntity = combatants.get(combatant.target).entityReference;
+					else
+						targetEntity = null;
+
+					if(targetEntity == null || !targetEntity.isEntityAlive() || !combatants.containsKey(targetEntity.entityId))
 						continue;
 					targetEntity.hurtResistantTime = 0;
 					notifyPlayersWithMessage(combatantEntity.getEntityName() + " attacks " + targetEntity.getEntityName() + "!");
@@ -403,7 +421,10 @@ public class Battle{
 		}
 		
 		if(sideOne == 0 || sideTwo == 0 || players == 0)
+		{
 			battleEnded = true;
+			System.out.println("Battle " + battleID + " ended.");
+		}
 	}
 	
 	private boolean fleeCheck(CombatantInfo fleeingCombatant)
@@ -470,4 +491,23 @@ public class Battle{
 		}
 	}
 	
+	protected void notifyPlayersHealthInformation()
+	{
+		CombatantInfo[] combatantListCopy = combatants.values().toArray(new CombatantInfo[0]);
+		for(int i=0; i<combatantListCopy.length; i++)
+		{
+			combatantListCopy[i].updateHealthRatio((short)((float)combatantListCopy[i].entityReference.getHealth() / (float)combatantListCopy[i].entityReference.getMaxHealth() * 10.0f));
+		}
+		
+		for(int i=0; i<combatantListCopy.length; i++)
+		{
+			if(combatantListCopy[i].isPlayer)
+			{
+				for(int j=0; j<combatantListCopy.length; j++)
+				{
+					PacketDispatcher.sendPacketToPlayer(new CombatantHealthRatioPacket(combatantListCopy[j].id, combatantListCopy[j].healthRatio).makePacket(), (Player)combatantListCopy[i].entityReference);
+				}
+			}
+		}
+	}
 }
