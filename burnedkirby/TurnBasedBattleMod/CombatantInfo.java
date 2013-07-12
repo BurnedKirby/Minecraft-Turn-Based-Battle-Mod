@@ -1,6 +1,6 @@
 package burnedkirby.TurnBasedBattleMod;
 
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 
 public class CombatantInfo{
 	
@@ -10,7 +10,7 @@ public class CombatantInfo{
 	
 	public boolean isPlayer;
 	public int id;
-	public EntityLiving entityReference;
+	public EntityLivingBase entityReference;
 	public boolean isSideOne;
 	
 	public String name;
@@ -53,7 +53,7 @@ public class CombatantInfo{
 		target = 0;
 	}
 	
-	public CombatantInfo(boolean isPlayer, int id, EntityLiving reference, boolean isSideOne, String name, boolean ready, Type type, int target)
+	public CombatantInfo(boolean isPlayer, int id, EntityLivingBase reference, boolean isSideOne, String name, boolean ready, Type type, int target)
 	{
 		this.isPlayer = isPlayer;
 		this.id = id;

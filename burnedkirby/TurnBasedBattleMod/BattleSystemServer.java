@@ -17,7 +17,7 @@ import cpw.mods.fml.common.network.Player;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
@@ -34,7 +34,7 @@ public class BattleSystemServer {
 	
 	protected static Random random;
 	
-	protected static EntityLiving attackingEntity;
+	protected static EntityLivingBase attackingEntity;
 	protected static Object attackingLock;
 	
 	private Thread battleUpdateThread;
@@ -57,7 +57,7 @@ public class BattleSystemServer {
 	 * @param entityAttacked The attacked entity.
 	 * @return True if the LivingAttackEvent that called this method should be canceled.
 	 */
-	public boolean manageCombatants(EntityLiving entityAttacker, EntityLiving entityAttacked)
+	public boolean manageCombatants(EntityLivingBase entityAttacker, EntityLivingBase entityAttacked)
 	{
 		if(entityAttacker instanceof EntityCreeper)
 			return false;
@@ -77,8 +77,8 @@ public class BattleSystemServer {
 			}
 			
 			Stack<CombatantInfo> combatants = new Stack<CombatantInfo>();
-			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.entityId, entityAttacker, true, entityAttacker.getEntityName(), false, Type.DO_NOTHING, entityAttacker.getAttackTarget() != null ? entityAttacker.getAttackTarget().entityId : 0));
-			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.entityId, entityAttacked, false, entityAttacked.getEntityName(), false, Type.DO_NOTHING, entityAttacked.getAttackTarget() != null ? entityAttacked.getAttackTarget().entityId : 0));
+			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.entityId, entityAttacker, true, entityAttacker.getEntityName(), false, Type.DO_NOTHING, entityAttacked.entityId));
+			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.entityId, entityAttacked, false, entityAttacked.getEntityName(), false, Type.DO_NOTHING, entityAttacked.getAITarget() != null ? entityAttacked.getAITarget().entityId : 0));
 			synchronized(battles)
 			{
 				battles.put(battleIDCounter,new Battle(battleIDCounter, combatants));
@@ -89,15 +89,15 @@ public class BattleSystemServer {
 			break;
 		case 0x1:
 		case 0x2:
-			EntityLiving newCombatant = (inBattle == 0x1 ? entityAttacked : entityAttacker);
-			EntityLiving inBattleCombatant = (inBattle == 0x1 ? entityAttacker : entityAttacked);
+			EntityLivingBase newCombatant = (inBattle == 0x1 ? entityAttacked : entityAttacker);
+			EntityLivingBase inBattleCombatant = (inBattle == 0x1 ? entityAttacker : entityAttacked);
 			
 			synchronized(battles)
 			{
 				Battle battleToJoin;
 				boolean isSideOne = !((battleToJoin = findBattleByEntityID(inBattleCombatant.entityId)).getCombatant(inBattleCombatant.entityId).isSideOne);
 				
-				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.entityId, newCombatant, isSideOne, newCombatant.getEntityName(), false, Type.DO_NOTHING, newCombatant.getAttackTarget() != null ? newCombatant.getAttackTarget().entityId : 0));
+				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.entityId, newCombatant, isSideOne, newCombatant.getEntityName(), false, Type.DO_NOTHING, inBattleCombatant.entityId));
 			}
 			returnValue = true;
 			break;

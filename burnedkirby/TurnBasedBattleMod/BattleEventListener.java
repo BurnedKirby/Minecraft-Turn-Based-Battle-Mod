@@ -8,7 +8,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
@@ -33,7 +33,7 @@ public class BattleEventListener {
 		if(event.entity.worldObj.isRemote)
 			return;
 		
-		if(!(event.source.getEntity() instanceof EntityLiving) || !(event.entity instanceof EntityLiving))
+		if(!(event.source.getEntity() instanceof EntityLivingBase) || !(event.entity instanceof EntityLivingBase))
 			return;
 		
 		if(event.entity == event.source.getEntity())
@@ -43,7 +43,7 @@ public class BattleEventListener {
 				+ ") hit " + event.entity.getEntityName() + "(" + event.entity.entityId + ").");
 		System.out.println("Battle Attacker is currently " + (ModMain.bss.attackingEntity == null ? "null" : ModMain.bss.attackingEntity.getEntityName()));
 
-		if(ModMain.bss.manageCombatants((EntityLiving)event.source.getEntity(), (EntityLiving)event.entity))
+		if(ModMain.bss.manageCombatants((EntityLivingBase)event.source.getEntity(), (EntityLivingBase)event.entity))
 			event.setCanceled(true);
 //		else if(ModMain.bss.isInBattle(event.source.getEntity().entityId) && ModMain.bss.isInBattle(event.entity.entityId))
 //			if(!Battle.playerAttacking && !(event.source.getEntity() instanceof EntityPlayer)) //TODO go over this again
