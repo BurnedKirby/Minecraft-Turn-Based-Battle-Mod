@@ -5,7 +5,7 @@ import net.minecraft.entity.EntityLiving;
 public class CombatantInfo{
 	
 	public enum Type {
-		DO_NOTHING, ATTACK, FLEE
+		DO_NOTHING, ATTACK, FLEE, CHANGE_ITEM
 	}
 	
 	public boolean isPlayer;

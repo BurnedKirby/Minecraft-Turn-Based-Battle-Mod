@@ -219,7 +219,7 @@ public class BattleGui extends GuiScreen {
 			info[0] = "What will you do?";
 			buttonList.add(new GuiButton(3, width/6 - 40, height - 72, 80, 20, "Attack"));
 			//controlList.add(new GuiButton(5, width*2/5 - 40, height - 72, 80, 20, "Use Item"));
-			//buttonList.add(new GuiButton(4, width*3/5 - 40, height - 72, 80, 20, "Change Weapon"));
+			buttonList.add(new GuiButton(4, width*3/5 - 40, height - 72, 80, 20, "Change Weapon"));
 			buttonList.add(new GuiButton(0, width*5/6 - 40, height - 72, 80, 20, "Cancel"));
 			break;
 		case 2: //Flee status
@@ -230,9 +230,19 @@ public class BattleGui extends GuiScreen {
 			info[0] = "Pick a target!";
 			break;
 		case 4: //Change weapon menu
+			info[0] = "Pick your weapon!";
+			for(int i=0; i < 9; i++)
+			{
+				buttonList.add(new ItemSelectionButton(6, width/2 - 88 + i * 20, height - 19, 16, 16, "", i));
+			}
+			buttonList.add(new GuiButton(0, width/2 - 40, height - 40, 80, 20, "Cancel"));
 			break;
 		case 5: //Attack Phase (Handled by actionPerformed method)
 			info[0] = "You attack!";
+			info[1] = "Waiting for server...";
+			break;
+		case 6: //Weapon Changed
+			info[0] = "You switched weapons!";
 			info[1] = "Waiting for server...";
 			break;
 		default:
@@ -266,6 +276,17 @@ public class BattleGui extends GuiScreen {
 		{
 			player.target = ((IDSelectionButton)button).entityID;
 			player.type = Type.ATTACK;
+			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
+			turnChoiceSent = true;
+		}
+		
+		if(button.id == 6)
+		{
+			int itemStackID = ((ItemSelectionButton)button).getItemStackID();
+			Minecraft.getMinecraft().thePlayer.inventory.currentItem = itemStackID;
+			
+			player.type = Type.CHANGE_ITEM;
+			player.target = player.id;
 			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
 			turnChoiceSent = true;
 		}
