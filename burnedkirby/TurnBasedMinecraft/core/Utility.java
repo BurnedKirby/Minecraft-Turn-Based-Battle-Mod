@@ -1,4 +1,4 @@
-package burnedkirby.TurnBasedBattleMod.core;
+package burnedkirby.TurnBasedMinecraft.core;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;

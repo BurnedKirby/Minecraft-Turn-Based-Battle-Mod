@@ -1,42 +1,43 @@
-package burnedkirby.TurnBasedBattleMod.core.network;
+package burnedkirby.TurnBasedMinecraft.core.network;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+
+import burnedkirby.TurnBasedMinecraft.ModMain;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 
 import cpw.mods.fml.relauncher.Side;
 
-public class BattleMessagePacket extends CommandPacket {
-	
-	String message;
-	
-	public BattleMessagePacket() {message = "";}
-	
-	public BattleMessagePacket(String message)
-	{
-		this.message = message;
-	}
+/**
+ * This packet sent from server to player notifies the player that a turn has
+ * ended and the Battle GUI can now return to the main menu.
+ *
+ */
+public class BattlePhaseEndedPacket extends CommandPacket {
 
 	@Override
 	public void write(ByteArrayDataOutput out) {
-		out.writeUTF(message);
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
 	public void read(ByteArrayDataInput in) throws ProtocolException {
-		message = in.readUTF();
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
 	public void execute(EntityPlayer player, Side side)
 			throws ProtocolException {
 		if(side.isServer())
-		{}
+		{
+			
+		}
 		else
 		{
-			Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(message);
+//			ModMain.bg.updateTurnEnd(true);
 		}
 	}
 

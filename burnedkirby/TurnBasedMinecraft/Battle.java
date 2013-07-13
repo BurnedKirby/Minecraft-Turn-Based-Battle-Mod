@@ -1,4 +1,4 @@
-package burnedkirby.TurnBasedBattleMod;
+package burnedkirby.TurnBasedMinecraft;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -11,13 +11,13 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
-import burnedkirby.TurnBasedBattleMod.core.network.BattleCombatantPacket;
-import burnedkirby.TurnBasedBattleMod.core.network.BattleMessagePacket;
-import burnedkirby.TurnBasedBattleMod.core.network.BattlePhaseEndedPacket;
-import burnedkirby.TurnBasedBattleMod.core.network.BattleStatusPacket;
-import burnedkirby.TurnBasedBattleMod.core.network.CombatantHealthPacket;
-import burnedkirby.TurnBasedBattleMod.core.network.InitiateBattlePacket;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleCombatantPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleMessagePacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattlePhaseEndedPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.CombatantHealthPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.InitiateBattlePacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;

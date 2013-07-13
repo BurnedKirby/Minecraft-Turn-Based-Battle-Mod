@@ -1,8 +1,8 @@
-package burnedkirby.TurnBasedBattleMod.core;
+package burnedkirby.TurnBasedMinecraft.core;
 
 import net.minecraft.client.Minecraft;
-import burnedkirby.TurnBasedBattleMod.CombatantInfo;
-import burnedkirby.TurnBasedBattleMod.gui.BattleGui;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo;
+import burnedkirby.TurnBasedMinecraft.gui.BattleGui;
 
 public class ClientProxy extends CommonProxy {
 

@@ -1,4 +1,4 @@
-package burnedkirby.TurnBasedBattleMod.core.network;
+package burnedkirby.TurnBasedMinecraft.core.network;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.packet.Packet;

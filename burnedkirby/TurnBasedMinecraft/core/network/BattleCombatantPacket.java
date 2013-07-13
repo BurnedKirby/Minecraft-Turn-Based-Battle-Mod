@@ -1,15 +1,15 @@
-package burnedkirby.TurnBasedBattleMod.core.network;
+package burnedkirby.TurnBasedMinecraft.core.network;
 
 import java.io.EOFException;
 import java.io.IOException;
 
 import net.minecraft.entity.player.EntityPlayer;
 
-import burnedkirby.TurnBasedBattleMod.CombatantInfo;
-import burnedkirby.TurnBasedBattleMod.ModMain;
-import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
-import burnedkirby.TurnBasedBattleMod.core.ClientProxy;
-import burnedkirby.TurnBasedBattleMod.gui.BattleGui;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo;
+import burnedkirby.TurnBasedMinecraft.ModMain;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
+import burnedkirby.TurnBasedMinecraft.core.ClientProxy;
+import burnedkirby.TurnBasedMinecraft.gui.BattleGui;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;

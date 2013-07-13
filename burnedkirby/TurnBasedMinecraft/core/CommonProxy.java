@@ -1,6 +1,6 @@
-package burnedkirby.TurnBasedBattleMod.core;
+package burnedkirby.TurnBasedMinecraft.core;
 
-import burnedkirby.TurnBasedBattleMod.CombatantInfo;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo;
 
 public class CommonProxy{
 

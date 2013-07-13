@@ -1,4 +1,4 @@
-package burnedkirby.TurnBasedBattleMod;
+package burnedkirby.TurnBasedMinecraft;
 
 import java.util.Map;
 import java.util.Random;
@@ -8,9 +8,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
-import burnedkirby.TurnBasedBattleMod.core.Utility;
-import burnedkirby.TurnBasedBattleMod.core.network.BattleStatusPacket;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
+import burnedkirby.TurnBasedMinecraft.core.Utility;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;

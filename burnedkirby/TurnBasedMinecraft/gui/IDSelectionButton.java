@@ -1,4 +1,4 @@
-package burnedkirby.TurnBasedBattleMod.gui;
+package burnedkirby.TurnBasedMinecraft.gui;
 
 import net.minecraft.client.gui.GuiButton;
 

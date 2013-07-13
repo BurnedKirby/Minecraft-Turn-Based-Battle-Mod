@@ -1,16 +1,16 @@
-package burnedkirby.TurnBasedBattleMod.gui;
+package burnedkirby.TurnBasedMinecraft.gui;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import burnedkirby.TurnBasedBattleMod.CombatantInfo;
-import burnedkirby.TurnBasedBattleMod.ModMain;
-import burnedkirby.TurnBasedBattleMod.CombatantInfo.Type;
-import burnedkirby.TurnBasedBattleMod.core.ClientProxy;
-import burnedkirby.TurnBasedBattleMod.core.network.BattleCommandPacket;
-import burnedkirby.TurnBasedBattleMod.core.network.BattleQueryPacket;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo;
+import burnedkirby.TurnBasedMinecraft.ModMain;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
+import burnedkirby.TurnBasedMinecraft.core.ClientProxy;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleCommandPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleQueryPacket;
 
 import cpw.mods.fml.common.network.PacketDispatcher;
 

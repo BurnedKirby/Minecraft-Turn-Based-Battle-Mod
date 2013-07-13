@@ -1,9 +1,9 @@
-package burnedkirby.TurnBasedBattleMod.core.network;
+package burnedkirby.TurnBasedMinecraft.core.network;
 
 import net.minecraft.entity.player.EntityPlayer;
 
-import burnedkirby.TurnBasedBattleMod.ModMain;
-import burnedkirby.TurnBasedBattleMod.gui.BattleGui;
+import burnedkirby.TurnBasedMinecraft.ModMain;
+import burnedkirby.TurnBasedMinecraft.gui.BattleGui;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;

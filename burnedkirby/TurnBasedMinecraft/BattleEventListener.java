@@ -1,7 +1,7 @@
-package burnedkirby.TurnBasedBattleMod;
+package burnedkirby.TurnBasedMinecraft;
 
-import burnedkirby.TurnBasedBattleMod.core.network.BattleQueryPacket;
-import burnedkirby.TurnBasedBattleMod.core.network.InitiateBattlePacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleQueryPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.InitiateBattlePacket;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 import cpw.mods.fml.relauncher.Side;

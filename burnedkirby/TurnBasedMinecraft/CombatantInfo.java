@@ -1,4 +1,4 @@
-package burnedkirby.TurnBasedBattleMod;
+package burnedkirby.TurnBasedMinecraft;
 
 import net.minecraft.entity.EntityLivingBase;
 
