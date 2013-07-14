@@ -30,6 +30,7 @@ import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.MinecraftException;
@@ -106,7 +107,8 @@ public class Battle{
 				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,newCombatant).makePacket(), (Player)newCombatant.entityReference);
 			
 			notifyPlayers(true);
-			notifyPlayersWithMessage(newCombatant.name + " has entered battle!");
+			String name = ScorePlayerTeam.formatPlayerName(newCombatant.entityReference.worldObj.getScoreboard().getPlayersTeam(newCombatant.name), newCombatant.name);
+			notifyPlayersWithMessage(name + " has entered battle!");
 		}
 		else
 		{
@@ -198,14 +200,15 @@ public class Battle{
 //		phaseInProgress = true;
 		
 		boolean forceUpdate = false;
-		
+		String name = "";
 		if(!newCombatantQueue.isEmpty())
 			forceUpdate = true;
 		while(!newCombatantQueue.isEmpty())
 		{
 			CombatantInfo combatant = newCombatantQueue.pop();
 			combatants.put(combatant.id, combatant);
-			notifyPlayersWithMessage(combatant.name + " has entered battle!");
+			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.worldObj.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
+			notifyPlayersWithMessage(name + " has entered battle!");
 		}
 		
 		Iterator<CombatantInfo> iter = combatants.values().iterator();
@@ -271,9 +274,14 @@ public class Battle{
 			}
 		}
 		
+		String name = "";
+		String targetName = "";
+		
 		while(!messageQueue.isEmpty())
 		{
-			notifyPlayersWithMessage(messageQueue.pop().name + " has fled battle!");
+			combatant = messageQueue.pop();
+			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.worldObj.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
+			notifyPlayersWithMessage(name + " has fled battle!");
 		}
 		
 		//Combatant attack phase
@@ -303,7 +311,9 @@ public class Battle{
 					if(targetEntity == null || !targetEntity.isEntityAlive() || !combatants.containsKey(targetEntity.entityId))
 						continue;
 					targetEntity.hurtResistantTime = 0;
-					notifyPlayersWithMessage(combatantEntity.getEntityName() + " attacks " + targetEntity.getEntityName() + "!");
+					name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(combatantEntity.getEntityName()), combatantEntity.getEntityName());
+					targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
+					notifyPlayersWithMessage(name + " attacks " + targetName + "!");
 					ModMain.bss.attackingEntity = combatantEntity;
 					((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
 				}
@@ -336,7 +346,9 @@ public class Battle{
 						targetEntity = combatantArray[picked].entityReference;
 					}
 					targetEntity.hurtResistantTime = 0;
-					notifyPlayersWithMessage(combatantEntity.getEntityName() + " attacks " + targetEntity.getEntityName() + "!");
+					name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(combatantEntity.getEntityName()), combatantEntity.getEntityName());
+					targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
+					notifyPlayersWithMessage(name + " attacks " + targetName + "!");
 					ModMain.bss.attackingEntity = combatantEntity;
 					((EntityMob)combatantEntity).attackEntityAsMob(targetEntity);
 				}
@@ -387,7 +399,9 @@ public class Battle{
 		}
 		
 		while(!messageQueue.isEmpty())
+		{
 			notifyPlayersWithMessage(messageQueue.pop().name + " has died!");
+		}
 		
 		checkIfBattleEnded();
 		
