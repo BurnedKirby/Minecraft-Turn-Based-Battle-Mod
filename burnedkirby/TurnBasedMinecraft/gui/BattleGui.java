@@ -17,6 +17,7 @@ import cpw.mods.fml.common.network.PacketDispatcher;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.scoreboard.ScorePlayerTeam;
 
 /**
  * Player/Client side GUIScreen that also manages the player side of the Battle.
@@ -195,26 +196,36 @@ public class BattleGui extends GuiScreen {
 	private void drawCombatant(CombatantInfo combatant, int x, int y, int color)
 	{
 		int nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(combatant.name);
+		String name = ScorePlayerTeam.formatPlayerName(Minecraft.getMinecraft().theWorld.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 		if(combatantButton)
 		{
 			if(!combatantButtonPopulated)
 			{
-				buttonList.add(new IDSelectionButton(5, combatant.id, x - nameLength/2, y, nameLength + 2, 8, combatant.name));
+				buttonList.add(new IDSelectionButton(5, combatant.id, x - nameLength/2, y, nameLength + 2, 8, name));
 			}
 		}
 		else
 		{
-			Minecraft.getMinecraft().fontRenderer.drawString(combatant.name, x - nameLength/2, y, color);
+			Minecraft.getMinecraft().fontRenderer.drawString(name, x - nameLength/2, y, color);
 		}
 		
 		//Draw Health
-		if(combatant.health > 100)
+		if(combatant.health > 200)
+		{
+			drawRect(x - nameLength/2 + 16, y + 10, x - nameLength/2 + 19, y + 11, 0xFF0000FF);
+			drawRect(x - nameLength/2 + 12, y + 10, x - nameLength/2 + 15, y + 11, 0xFF00FFFF);
+			drawRect(x - nameLength/2 + 8, y + 10, x - nameLength/2 + 11, y + 11, 0xFF00FF00);
+			drawRect(x - nameLength/2 + 4, y + 10, x - nameLength/2 + 7, y + 11, 0xFFFFFF00);
+			drawRect(x - nameLength/2, y + 10, x - nameLength/2 + 3, y + 11, 0xFFFF0000);
+			drawRect(x - nameLength/2, y + 9, x - nameLength/2 + (int)((combatant.health - 200.0f) / 100.0f * (float)nameLength), y + 10, 0xFFFFFFFF);
+		}
+		else if(combatant.health > 100)
 		{
 			drawRect(x - nameLength/2 + 12, y + 10, x - nameLength/2 + 15, y + 11, 0xFF00FFFF);
 			drawRect(x - nameLength/2 + 8, y + 10, x - nameLength/2 + 11, y + 11, 0xFF00FF00);
 			drawRect(x - nameLength/2 + 4, y + 10, x - nameLength/2 + 7, y + 11, 0xFFFFFF00);
 			drawRect(x - nameLength/2, y + 10, x - nameLength/2 + 3, y + 11, 0xFFFF0000);
-			drawRect(x - nameLength/2, y + 9, x - nameLength/2 + (int)((combatant.health - 100.0f) / 200.0f * (float)nameLength), y + 10, 0xFFFFFFFF);
+			drawRect(x - nameLength/2, y + 9, x - nameLength/2 + (int)((combatant.health - 100.0f) / 100.0f * (float)nameLength), y + 10, 0xFF0000FF);
 		}
 		else if (combatant.health > 50)
 		{
