@@ -84,6 +84,7 @@ public class Battle{
 				combatant.type = Type.FLEE;
 			}
 			combatants.put(combatant.id, combatant);
+			ModMain.bss.inBattle.add(combatant);
 		}
 		
 		status = BattleStatus.PLAYER_PHASE;
@@ -102,6 +103,7 @@ public class Battle{
 			}
 			
 			combatants.put(newCombatant.id, newCombatant);
+			ModMain.bss.inBattle.add(newCombatant);
 
 			if(newCombatant.isPlayer)
 				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,newCombatant).makePacket(), (Player)newCombatant.entityReference);
@@ -188,7 +190,9 @@ public class Battle{
 				break;
 			}
 		else
+		{
 			notifyPlayers(false);
+		}
 		
 		return battleEnded;
 	}
@@ -207,6 +211,7 @@ public class Battle{
 		{
 			CombatantInfo combatant = newCombatantQueue.pop();
 			combatants.put(combatant.id, combatant);
+			ModMain.bss.inBattle.add(combatant);
 			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.worldObj.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 			notifyPlayersWithMessage(name + " has entered battle!");
 		}
@@ -222,6 +227,15 @@ public class Battle{
 				iter.remove();
 				if(!combatant.isPlayer)
 					messageQueue.push(combatant);
+				
+				combatant.removeEntityReference();
+				combatant.setTarget(BattleSystemServer.exitCooldownTime);
+				synchronized(ModMain.bss.inBattle) {
+					ModMain.bss.inBattle.remove(combatant);
+				}
+				synchronized(ModMain.bss.exitedBattle) {
+					ModMain.bss.exitedBattle.add(combatant);
+				}
 			}
 			
 		}
@@ -271,6 +285,14 @@ public class Battle{
 				if(combatant.isPlayer)
 					notifyPlayer(false, combatant, true);
 				messageQueue.push(combatant);
+
+				combatant.setTarget(BattleSystemServer.exitCooldownTime);
+				synchronized(ModMain.bss.inBattle) {
+					ModMain.bss.inBattle.remove(combatant);
+				}
+				synchronized(ModMain.bss.exitedBattle) {
+					ModMain.bss.exitedBattle.add(combatant);
+				}
 			}
 		}
 		
@@ -386,7 +408,18 @@ public class Battle{
 					notifyPlayer(false, combatantRef, false);
 				else
 					messageQueue.push(combatantRef);
+				
 				iter.remove();
+
+				combatantRef.removeEntityReference();
+				combatantRef.setTarget(BattleSystemServer.exitCooldownTime);
+				synchronized(ModMain.bss.inBattle) {
+					ModMain.bss.inBattle.remove(combatantRef);
+				}
+				synchronized(ModMain.bss.exitedBattle) {
+					ModMain.bss.exitedBattle.add(combatantRef);
+				}
+				
 				continue;
 			}
 
@@ -438,6 +471,16 @@ public class Battle{
 		{
 			battleEnded = true;
 			System.out.println("Battle " + battleID + " ended.");
+			synchronized(ModMain.bss.inBattle) {
+			synchronized(ModMain.bss.exitedBattle) {
+				for(CombatantInfo combatant : combatants.values())
+				{
+					ModMain.bss.inBattle.remove(combatant);
+					combatant.setTarget(BattleSystemServer.exitCooldownTime);
+					ModMain.bss.exitedBattle.add(combatant);
+				}
+			}
+			}
 		}
 	}
 	
@@ -472,7 +515,6 @@ public class Battle{
 	protected void notifyPlayer(boolean forceUpdate, CombatantInfo player, boolean fledBattle)
 	{
 		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && (player.entityReference.isEntityAlive()) && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready).makePacket(), (Player)player.entityReference);
-		System.out.println("Sent packet with battle state (is over) " + (!battleEnded && (player.entityReference.isEntityAlive()) && !fledBattle));
 	}
 	
 	protected void notifyPlayersWithMessage(String message)
@@ -510,7 +552,7 @@ public class Battle{
 		CombatantInfo[] combatantListCopy = combatants.values().toArray(new CombatantInfo[0]);
 		for(int i=0; i<combatantListCopy.length; i++)
 		{
-			combatantListCopy[i].updateHealth(combatantListCopy[i].entityReference.func_110143_aJ());
+			combatantListCopy[i].setHealth(combatantListCopy[i].entityReference.func_110143_aJ());
 //			System.out.println("Possible health is " + combatantListCopy[i].entityReference.func_110143_aJ());
 
 		}

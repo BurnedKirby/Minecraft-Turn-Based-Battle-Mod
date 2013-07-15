@@ -2,7 +2,7 @@ package burnedkirby.TurnBasedMinecraft;
 
 import net.minecraft.entity.EntityLivingBase;
 
-public class CombatantInfo{
+public class CombatantInfo implements Comparable{
 	
 	public enum Type {
 		DO_NOTHING, ATTACK, FLEE, CHANGE_ITEM
@@ -27,7 +27,6 @@ public class CombatantInfo{
 	
 	public int target;
 	
-	// This is currentHealth / maxhealth * 10 rounded to a whole number.
 	public float health;
 	
 	
@@ -79,13 +78,28 @@ public class CombatantInfo{
 		return true;
 	}
 	
-	public void updateHealth(float health)
+	public void setHealth(float health)
 	{
 		this.health = health;
+	}
+	
+	public void setTarget(int target)
+	{
+		this.target = target;
+	}
+	
+	public void removeEntityReference()
+	{
+		entityReference = null;
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
 		return (obj instanceof CombatantInfo ? id == ((CombatantInfo)obj).id : false);
+	}
+
+	@Override
+	public int compareTo(Object other) {
+		return id - ((CombatantInfo)other).id;
 	}
 }

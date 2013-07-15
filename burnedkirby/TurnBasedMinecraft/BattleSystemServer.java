@@ -1,5 +1,6 @@
 package burnedkirby.TurnBasedMinecraft;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -9,6 +10,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
+import burnedkirby.TurnBasedMinecraft.core.CombatantInfoSet;
 import burnedkirby.TurnBasedMinecraft.core.Utility;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
 
@@ -28,7 +30,8 @@ public class BattleSystemServer {
 	 * battles data-structure: BattleID to Battle 
 	 */
 	private Map<Integer,Battle> battles;
-	
+	protected CombatantInfoSet inBattle;
+	protected CombatantInfoSet exitedBattle;
 
 	protected static int battleIDCounter = 0; //TODO maybe split this per world
 	
@@ -39,9 +42,13 @@ public class BattleSystemServer {
 	
 	private Thread battleUpdateThread;
 	
+	protected static final int exitCooldownTime = 5;
+	
 	public BattleSystemServer()
 	{
 		battles = new TreeMap<Integer,Battle>();
+		inBattle = new CombatantInfoSet();
+		exitedBattle = new CombatantInfoSet();
 		random = new Random(System.currentTimeMillis());
 		battleUpdateThread = null;
 		attackingEntity = null;
@@ -61,6 +68,8 @@ public class BattleSystemServer {
 	{
 		if(entityAttacker instanceof EntityCreeper)
 			return false;
+		else if(exitedBattle.contains(entityAttacker.entityId) || exitedBattle.contains(entityAttacked.entityId))
+			return true;
 		
 		boolean returnValue = false;
 		short inBattle = 0x0;
@@ -122,20 +131,6 @@ public class BattleSystemServer {
 		return returnValue;
 	}
 	
-//	public void manageCombatantDeath(Entity entity)
-//	{
-//		Battle b = findBattleByEntityID(entity.entityId);
-//		
-//		if(b == null)
-//		{
-//			System.out.println("Dead Entity (" + entity.entityId + ") " + entity.getEntityName() + " not in battle.");
-//		}
-//		else
-//		{
-//			b.manageDeath(entity.entityId);
-//		}
-//	}
-	
 	/**
 	 * Checks if the entity is currently in battle.
 	 * @param entityID The entity that is checked.
@@ -143,14 +138,9 @@ public class BattleSystemServer {
 	 */
 	private boolean isInBattle(int entityID)
 	{
-		synchronized(battles)
+		synchronized(inBattle)
 		{
-			for(Battle b : battles.values())
-			{
-				if(b.isInBattle(entityID))
-					return true;
-			}
-			return false;
+			return inBattle.contains(entityID);
 		}
 	}
 
@@ -207,11 +197,13 @@ public class BattleSystemServer {
 	public class BattleUpdate implements Runnable
 	{
 		Stack<Integer> removalQueue = new Stack<Integer>();
+		short empty;
 
 		@Override
 		public synchronized void run() {
 			while(MinecraftServer.getServer().isServerRunning())
 			{
+				empty = 0x0;
 				synchronized(battles)
 				{
 					for(Battle b : battles.values())
@@ -228,9 +220,26 @@ public class BattleSystemServer {
 						battles.remove(removalQueue.pop());
 					}
 					
-					if(battles.isEmpty())
-						return;
+					empty |= battles.isEmpty() ? 0x1 : 0x0;
 				}
+				synchronized(exitedBattle)
+				{
+					Iterator<CombatantInfo> iter = exitedBattle.iterator();
+					while(iter.hasNext())
+					{
+						CombatantInfo combatant = iter.next();
+						if(combatant.target > 0)
+							combatant.setTarget(combatant.target - 1);
+						else
+							iter.remove();
+					}
+
+					empty |= exitedBattle.isEmpty() ? 0x2 : 0x0;
+				}
+				
+				if(empty == 0x3)
+					return;
+				
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {}

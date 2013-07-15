@@ -101,7 +101,7 @@ public class BattleGui extends GuiScreen {
 		{
 			CombatantInfo combatant = combatants.get(entityID);
 			if(combatant != null)
-				combatant.updateHealth(health);
+				combatant.setHealth(health);
 		}
 	}
 	
