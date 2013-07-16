@@ -24,6 +24,7 @@ public class BattleStatusPacket extends CommandPacket {
 	int battleSize;
 	boolean playerPhase;
 	boolean turnChoiceReceived;
+	short timer;
 	
 	public BattleStatusPacket(boolean found)
 	{
@@ -32,15 +33,17 @@ public class BattleStatusPacket extends CommandPacket {
 		battleSize = 0;
 		playerPhase = false;
 		turnChoiceReceived = false;
+		timer = 0;
 	}
 	
-	public BattleStatusPacket(boolean found, boolean forceUpdate, int battleSize, boolean playerPhase, boolean turnChoiceReceived)
+	public BattleStatusPacket(boolean found, boolean forceUpdate, int battleSize, boolean playerPhase, boolean turnChoiceReceived, short timer)
 	{
 		this.found = found;
 		this.forceUpdate = forceUpdate;
 		this.battleSize = battleSize;
 		this.playerPhase = playerPhase;
 		this.turnChoiceReceived = turnChoiceReceived;
+		this.timer = timer;
 	}
 	
 	public BattleStatusPacket()
@@ -53,6 +56,7 @@ public class BattleStatusPacket extends CommandPacket {
 		out.writeInt(battleSize);
 		out.writeBoolean(playerPhase);
 		out.writeBoolean(turnChoiceReceived);
+		out.writeShort(timer);
 	}
 
 	@Override
@@ -62,6 +66,7 @@ public class BattleStatusPacket extends CommandPacket {
 		battleSize = in.readInt();
 		playerPhase = in.readBoolean();
 		turnChoiceReceived = in.readBoolean();
+		timer = in.readShort();
 	}
 
 	@Override
@@ -83,7 +88,7 @@ public class BattleStatusPacket extends CommandPacket {
 				}
 				else if(((BattleGui)ModMain.proxy.getGui()) == null)
 					return;
-				((BattleGui)ModMain.proxy.getGui()).checkBattleInfo(forceUpdate, battleSize, playerPhase, turnChoiceReceived);
+				((BattleGui)ModMain.proxy.getGui()).checkBattleInfo(forceUpdate, battleSize, playerPhase, turnChoiceReceived, timer);
 			}
 			else if(!found && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
 			{

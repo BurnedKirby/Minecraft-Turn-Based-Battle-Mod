@@ -29,6 +29,8 @@ public class CombatantInfo implements Comparable{
 	
 	public float health;
 	
+	public short turnTickTimer;
+	
 	
 	public CombatantInfo()
 	{
@@ -88,9 +90,19 @@ public class CombatantInfo implements Comparable{
 		this.target = target;
 	}
 	
+	public void setTurnTickTimer(short tick)
+	{
+		turnTickTimer = tick;
+	}
+	
 	public void removeEntityReference()
 	{
 		entityReference = null;
+	}
+	
+	public short decrementTimer()
+	{
+		return --turnTickTimer;
 	}
 	
 	@Override

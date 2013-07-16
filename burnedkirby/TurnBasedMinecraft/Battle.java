@@ -54,6 +54,8 @@ public class Battle{
 	private short healthUpdateTick;
 	private final short healthUpdateTime = 4;
 	
+	private final short turnTickTime = 30;
+	
 	public Battle(int id)
 	{
 		battleID = id;
@@ -74,6 +76,7 @@ public class Battle{
 			if(combatant.isPlayer)
 			{
 				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,combatant).makePacket(), (Player)combatant.entityReference);
+				combatant.setTurnTickTimer(turnTickTime);
 			}
 			else if(combatant.entityReference instanceof EntityMob)
 			{
@@ -106,7 +109,10 @@ public class Battle{
 			ModMain.bss.inBattle.add(newCombatant);
 
 			if(newCombatant.isPlayer)
+			{
 				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,newCombatant).makePacket(), (Player)newCombatant.entityReference);
+				newCombatant.setTurnTickTimer(turnTickTime);
+			}
 			
 			notifyPlayers(true);
 			String name = ScorePlayerTeam.formatPlayerName(newCombatant.entityReference.worldObj.getScoreboard().getPlayersTeam(newCombatant.name), newCombatant.name);
@@ -237,7 +243,16 @@ public class Battle{
 					ModMain.bss.exitedBattle.add(combatant);
 				}
 			}
-			
+			else if(combatant.isPlayer)
+			{
+				if(combatant.decrementTimer() <= 0)
+				{
+					//TODO end turn for player
+					combatant.target = combatant.id;
+					combatant.type = Type.DO_NOTHING;
+					combatant.ready = true;
+				}
+			}
 		}
 		
 		while(!messageQueue.isEmpty())
@@ -428,6 +443,7 @@ public class Battle{
 				defaultInfo.target = combatantRef.target;
 				defaultInfo.id = combatantRef.id;
 				combatantRef.updateBattleInformation(defaultInfo);
+				combatantRef.setTurnTickTimer(turnTickTime);
 			}
 		}
 		
@@ -508,13 +524,13 @@ public class Battle{
 		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.isPlayer)
-				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && (combatant.entityReference.isEntityAlive()), forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready).makePacket(), (Player)combatant.entityReference);
+				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && (combatant.entityReference.isEntityAlive()), forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready, combatant.turnTickTimer).makePacket(), (Player)combatant.entityReference);
 		}
 	}
 	
 	protected void notifyPlayer(boolean forceUpdate, CombatantInfo player, boolean fledBattle)
 	{
-		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && (player.entityReference.isEntityAlive()) && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready).makePacket(), (Player)player.entityReference);
+		PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(!battleEnded && (player.entityReference.isEntityAlive()) && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready, player.turnTickTimer).makePacket(), (Player)player.entityReference);
 	}
 	
 	protected void notifyPlayersWithMessage(String message)

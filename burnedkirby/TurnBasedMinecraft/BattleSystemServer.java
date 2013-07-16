@@ -69,7 +69,10 @@ public class BattleSystemServer {
 		if(entityAttacker instanceof EntityCreeper)
 			return false;
 		else if(exitedBattle.contains(entityAttacker.entityId) || exitedBattle.contains(entityAttacked.entityId))
+		{
+			System.out.println("Canceled attack due to exitedbattle containing entity.");
 			return true;
+		}
 		
 		boolean returnValue = false;
 		short inBattle = 0x0;

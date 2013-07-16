@@ -46,6 +46,8 @@ public class BattleGui extends GuiScreen {
 	
 	private final int nameHeightInterval = 14;
 	
+	private short timer;
+	
 	public BattleGui(int battleID, CombatantInfo player)
 	{
 		this.battleID = battleID;
@@ -70,8 +72,9 @@ public class BattleGui extends GuiScreen {
 		turnChoiceSent = false;
 	}
 	
-	public void checkBattleInfo(boolean forceUpdate, int battleSize, boolean playerPhase, boolean turnChoiceReceived)
+	public void checkBattleInfo(boolean forceUpdate, int battleSize, boolean playerPhase, boolean turnChoiceReceived, short timer)
 	{
+		this.timer = timer;
 		serverBattleSize = battleSize;
 		if((!updatingCombatants && combatants.size() != battleSize) || forceUpdate)
 		{
@@ -150,6 +153,21 @@ public class BattleGui extends GuiScreen {
 			Minecraft.getMinecraft().fontRenderer.drawString(info[0], width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[0])/2, height - 90, 0xffffffff);
 		if(info[1] != "")
 			Minecraft.getMinecraft().fontRenderer.drawString(info[1], width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[1])/2, height - 80, 0xffffffff);
+		
+		if(!turnChoiceSent)
+		{
+			String formatString = "";
+			if(timer > 14)
+				formatString = "\u00A7a";
+			else if(timer > 6)
+				formatString = "\u00A7e";
+			else
+				formatString = "\u00A7c";
+			
+			String timerString = "Time left: " + formatString + (timer / 2);
+			
+			Minecraft.getMinecraft().fontRenderer.drawString(timerString, width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(timerString)/2, 10, 0xffffffff);
+		}
 		
 		updateTick--;
 		if(updateTick==0)
