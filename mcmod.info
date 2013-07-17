@@ -13,9 +13,9 @@
     "logoFile": "",
     "screenshots": [],
     "parent":"",
-	"requiredMods": [ "Forge" ],
-	"dependancies": [],
-	"dependants": [],
-	"useDependencyInformation": "true"
-	}]
+    "requiredMods": [ "Forge" ],
+    "dependancies": [],
+    "dependants": [],
+    "useDependencyInformation": "true"
+    }]
 }
