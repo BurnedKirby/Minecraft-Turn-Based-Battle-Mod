@@ -18,6 +18,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
 public class BattleEventListener {
 	
@@ -48,6 +49,16 @@ public class BattleEventListener {
 //		else if(ModMain.bss.isInBattle(event.source.getEntity().entityId) && ModMain.bss.isInBattle(event.entity.entityId))
 //			if(!Battle.playerAttacking && !(event.source.getEntity() instanceof EntityPlayer)) //TODO go over this again
 //				event.setCanceled(true);
+	}
+	
+	@ForgeSubscribe
+	public void entityUpdate(LivingUpdateEvent event)
+	{
+		if(event.entity.worldObj.isRemote)
+			return;
+		
+		if(ModMain.bss.inBattle.contains(event.entity.entityId))
+			event.setCanceled(true);
 	}
 	
 	/**
