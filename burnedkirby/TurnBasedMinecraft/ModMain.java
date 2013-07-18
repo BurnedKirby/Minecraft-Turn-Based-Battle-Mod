@@ -36,7 +36,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 channels = {CommandPacket.CHANNEL}, packetHandler = CommandPacketHandler.class)
 
 
-@Mod(modid="mod_BurnedKirbyTurnBasedMinecraft",name="BurnedKirby's Turn-Based Minecraft",version="0.2.3")
+@Mod(modid="mod_BurnedKirbyTurnBasedMinecraft",name="BurnedKirby's Turn-Based Minecraft",version="0.2.4")
 public class ModMain {
 	@Instance("BurnedKirbyTurnBasedBattleSystem")
 	public static ModMain instance = new ModMain();
@@ -49,6 +49,8 @@ public class ModMain {
 	@Init
 	public void initialize(FMLInitializationEvent event){
 		MinecraftForge.EVENT_BUS.register(new BattleEventListener());
+		
+		proxy.initializeMusicManager();
 	}
 	
 }

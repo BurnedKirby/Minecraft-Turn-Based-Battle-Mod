@@ -18,4 +18,13 @@ public class CommonProxy{
 	
 	public void setGui(Object gui)
 	{}
+	
+	public void initializeMusicManager()
+	{}
+	
+	public void playBattleMusic()
+	{}
+	
+	public void stopBattleMusic()
+	{}
 }

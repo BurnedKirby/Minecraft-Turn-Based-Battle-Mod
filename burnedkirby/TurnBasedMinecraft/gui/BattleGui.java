@@ -70,6 +70,7 @@ public class BattleGui extends GuiScreen {
 		updatingCombatants = false;
 		PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 0).makePacket());
 		turnChoiceSent = false;
+		ModMain.proxy.playBattleMusic();
 	}
 	
 	public void checkBattleInfo(boolean forceUpdate, int battleSize, boolean playerPhase, boolean turnChoiceReceived, short timer)
@@ -376,6 +377,7 @@ public class BattleGui extends GuiScreen {
 	@Override
 	public void onGuiClosed() {
 		ModMain.proxy.setGui(null);
+		ModMain.proxy.stopBattleMusic();
 	}
 	
 	/**
