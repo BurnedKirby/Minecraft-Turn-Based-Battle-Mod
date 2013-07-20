@@ -322,8 +322,8 @@ public class Battle{
 		}
 		
 		//Combatant attack phase
-		EntityLivingBase combatantEntity;
-		EntityLivingBase targetEntity;
+		EntityLivingBase combatantEntity = null;
+		EntityLivingBase targetEntity = null;
 		CombatantInfo[] combatantArray = combatants.values().toArray(new CombatantInfo[0]);
 		int rand;
 		for(int i=0; i < combatantArray.length; i++)
@@ -347,16 +347,33 @@ public class Battle{
 
 					if(targetEntity == null || !targetEntity.isEntityAlive() || !combatants.containsKey(targetEntity.entityId))
 						continue;
-					targetEntity.hurtResistantTime = 0;
-					name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(combatantEntity.getEntityName()), combatantEntity.getEntityName());
-					targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
-					notifyPlayersWithMessage(name + " attacks " + targetName + "!");
-					ModMain.bss.attackingEntity = combatantEntity;
-					((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
+					
+					if(missCheck(combatant, combatants.get(combatant.target)))
+					{
+						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(combatantEntity.getEntityName()), combatantEntity.getEntityName());
+						targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
+						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
+					}
+					else
+					{
+						targetEntity.hurtResistantTime = 0;
+						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(combatantEntity.getEntityName()), combatantEntity.getEntityName());
+						targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
+						if(criticalCheck(combatant))
+						{
+							combatantEntity.fallDistance = 0.1f;
+							combatantEntity.onGround = false; //critical hit
+							notifyPlayersWithMessage(name + " attacks " + targetName + " with a critical hit!!");
+						}
+						else
+							notifyPlayersWithMessage(name + " attacks " + targetName + "!");
+						ModMain.bss.attackingEntity = combatantEntity;
+						((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
+					}
 				}
 				else if(combatantEntity instanceof EntityMob)
 				{
-					if(((EntityCreature)combatantEntity).getEntityToAttack() instanceof EntityLivingBase)
+					if(((EntityCreature)combatantEntity).getEntityToAttack() instanceof EntityLivingBase && combatants.containsKey(((EntityMob) combatantEntity).getEntityToAttack().entityId))
 						targetEntity = (EntityLivingBase) ((EntityMob)combatantEntity).getEntityToAttack();
 					else
 						targetEntity = null;
@@ -382,15 +399,34 @@ public class Battle{
 							continue;
 						targetEntity = combatantArray[picked].entityReference;
 					}
-					targetEntity.hurtResistantTime = 0;
-					name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(combatantEntity.getEntityName()), combatantEntity.getEntityName());
-					targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
-					notifyPlayersWithMessage(name + " attacks " + targetName + "!");
-					ModMain.bss.attackingEntity = combatantEntity;
-					((EntityMob)combatantEntity).attackEntityAsMob(targetEntity);
+					
+					if(missCheck(combatant, combatants.get(targetEntity.entityId)))
+					{
+						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(combatantEntity.getEntityName()), combatantEntity.getEntityName());
+						targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
+						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
+					}
+					else
+					{
+						targetEntity.hurtResistantTime = 0;
+						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(combatantEntity.getEntityName()), combatantEntity.getEntityName());
+						targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
+						notifyPlayersWithMessage(name + " attacks " + targetName + "!");
+						ModMain.bss.attackingEntity = combatantEntity;
+						((EntityMob)combatantEntity).attackEntityAsMob(targetEntity);
+					}
 				}
 				else
-					System.out.println("Else triggered");//TODO
+					System.out.println("Else triggered");//TODO implement non-mob entities or don't enter battle with them???
+				
+				if(targetEntity.isEntityAlive() && counterCheck(combatants.get(targetEntity.entityId)))
+				{
+					notifyPlayersWithMessage(targetName + " countered " + name + "!");
+					targetEntity.hurtResistantTime = 0;
+					ModMain.bss.attackingEntity = targetEntity;
+					((EntityPlayer)targetEntity).attackTargetEntityWithCurrentItem(combatant.entityReference);
+				}
+				
 				ModMain.bss.attackingEntity = null;
 			}
 		}
@@ -444,6 +480,14 @@ public class Battle{
 				defaultInfo.id = combatantRef.id;
 				combatantRef.updateBattleInformation(defaultInfo);
 				combatantRef.setTurnTickTimer(turnTickTime);
+			}
+
+			combatantRef.resetBonuses();
+			if(combatantRef.counterSelectionSuccess)
+			{
+				combatantRef.criticalBonus += CombatantInfo.onCorrectDodgeCriticalBonus;
+				combatantRef.hitBonus += CombatantInfo.onCorrectDodgeHitBonus;
+				combatantRef.counterSelectionSuccess = false;
 			}
 		}
 		
@@ -517,6 +561,37 @@ public class Battle{
 			rand = BattleSystemServer.random.nextDouble() / Math.log((double)(diff + Math.E));
 			return ownSide > enemySide ? rand <= 0.67d : rand > 0.67d;
 		}
+	}
+	
+	private boolean missCheck(CombatantInfo attacker, CombatantInfo attacked)
+	{
+		if(attacked.type == Type.DODGE_COUNTER)
+		{
+			boolean miss = false;
+			if(attacked.target == attacker.id)
+			{
+				attacked.counterSelectionSuccess = true;
+				miss = BattleSystemServer.random.nextFloat() < CombatantInfo.evasionRate + CombatantInfo.onCorrectDodgeEvasionRate + attacked.evasionBonus - attacker.hitBonus;
+				attacked.counterBonus += miss ? CombatantInfo.counterRateAfterMiss : CombatantInfo.counterRateAfterHit;
+				return miss;
+			}
+			else
+			{
+				return BattleSystemServer.random.nextFloat() < CombatantInfo.evasionRate + CombatantInfo.onDodgeEvasionRate + attacked.evasionBonus - attacker.hitBonus;
+			}
+		}
+		else
+			return BattleSystemServer.random.nextFloat() < CombatantInfo.evasionRate + attacked.evasionBonus - attacker.hitBonus;
+	}
+	
+	private boolean criticalCheck(CombatantInfo attacker)
+	{
+		return BattleSystemServer.random.nextFloat() < CombatantInfo.criticalRate + attacker.criticalBonus;
+	}
+	
+	private boolean counterCheck(CombatantInfo attacked)
+	{
+		return BattleSystemServer.random.nextFloat() < attacked.counterBonus;
 	}
 	
 	protected void notifyPlayers(boolean forceUpdate)

@@ -5,7 +5,7 @@ import net.minecraft.entity.EntityLivingBase;
 public class CombatantInfo implements Comparable{
 	
 	public enum Type {
-		DO_NOTHING, ATTACK, FLEE, CHANGE_ITEM
+		DO_NOTHING, ATTACK, FLEE, CHANGE_WEAPON, DODGE_COUNTER
 	}
 	
 	public boolean isPlayer;
@@ -17,12 +17,6 @@ public class CombatantInfo implements Comparable{
 
 	public boolean ready;
 	
-	/**
-	 * Status type:
-	 * ** 0: player turn finished **
-	 * ** 1: player queued attack **
-	 * ** 2: player queued flee **
-	 */
 	public Type type;
 	
 	public int target;
@@ -31,6 +25,44 @@ public class CombatantInfo implements Comparable{
 	
 	public short turnTickTimer;
 	
+	/**
+	 * All values are percentages.
+	 * 
+	 * evasionRate: default evasion rate for a combatant.
+	 * criticalRate: default critical hit rate for a combatant.
+	 * onDodgeEvasionRate: evasion rate when dodging an attack from a combatant that wasn't selected.
+	 * onCorrectDodgeEvasionRate: evasion rate when dodging an attack from a combatant that was selected.
+	 * counterRateAfterHit: counter-attack rate after being hit by a combatant.
+	 * counterRateAfterMiss: counter-attack rate after dodging an attack by a combatant.
+	 * onCorrectDodgeHitBonus: hit bonus that increases the chances of hitting a combatant on the next turn.
+	 * onCorrectDodgeCriticalBonus: critical bonus that increases the chances of a critical hit on a combatant on the next turn.
+	 */
+	
+	public static float evasionRate = 0.12f;
+	
+	public static float criticalRate = 0.08f;
+	
+	public static float onDodgeEvasionRate = 0.09f;
+	
+	public static float onCorrectDodgeEvasionRate = 0.35f;
+	
+	public static float counterRateAfterHit = 0.3f;
+	
+	public static float counterRateAfterMiss = 0.7f;
+	
+	public static float onCorrectDodgeHitBonus = 0.1f;
+	
+	public static float onCorrectDodgeCriticalBonus = 0.1f;
+	
+	public float evasionBonus = 0.0f;
+	
+	public float criticalBonus = 0.0f;
+	
+	public float hitBonus = 0.0f;
+	
+	public float counterBonus = 0.0f;
+	
+	public boolean counterSelectionSuccess = false;
 	
 	public CombatantInfo()
 	{
@@ -103,6 +135,14 @@ public class CombatantInfo implements Comparable{
 	public short decrementTimer()
 	{
 		return --turnTickTimer;
+	}
+	
+	public void resetBonuses()
+	{
+		evasionBonus = 0.0f;
+		criticalBonus = 0.0f;
+		hitBonus = 0.0f;
+		counterBonus = 0.0f;
 	}
 	
 	@Override

@@ -36,6 +36,7 @@ public class BattleGui extends GuiScreen {
 	
 	private boolean combatantButton = false;
 	private boolean combatantButtonPopulated = false;
+	private boolean counterMenu = false;
 	
 	private boolean turnChoiceSent;
 	
@@ -117,7 +118,6 @@ public class BattleGui extends GuiScreen {
 	
 	public void update(boolean playerPhase, boolean turnChoiceReceived)
 	{
-		System.out.println("Update called, turnSentBool is" + turnChoiceSent);
 		updateTick = updateWaitTime;
 		if(playerPhase && !updatingCombatants)
 		{
@@ -220,7 +220,7 @@ public class BattleGui extends GuiScreen {
 		{
 			if(!combatantButtonPopulated)
 			{
-				buttonList.add(new IDSelectionButton(5, combatant.id, x - nameLength/2, y, nameLength + 2, 8, name));
+				buttonList.add(new IDSelectionButton(counterMenu ? 8 : 5, combatant.id, x - nameLength/2, y, nameLength + 2, 8, name));
 			}
 		}
 		else
@@ -288,13 +288,14 @@ public class BattleGui extends GuiScreen {
 			break;
 		case 0: //Main menu
 			info[0] = "What will you do?";
-			buttonList.add(new GuiButton(1, width*2/6 - 40, height - 72, 80, 20, "Fight"));
-			buttonList.add(new GuiButton(2, width*4/6 - 40, height - 72, 80, 20, "Flee"));
+			buttonList.add(new GuiButton(1, width*2/6 - 40, height - 40, 80, 20, "Fight"));
+			buttonList.add(new GuiButton(2, width*4/6 - 40, height - 40, 80, 20, "Flee"));
 			break;
 		case 1: //Fight menu
 			info[0] = "What will you do?";
 			buttonList.add(new GuiButton(3, width/6 - 40, height - 72, 80, 20, "Attack"));
 			//controlList.add(new GuiButton(5, width*2/5 - 40, height - 72, 80, 20, "Use Item"));
+			buttonList.add(new GuiButton(7, width*2/5 - 40, height - 72, 80, 20, "Dodge/Counter"));
 			buttonList.add(new GuiButton(4, width*3/5 - 40, height - 72, 80, 20, "Change Weapon"));
 			buttonList.add(new GuiButton(0, width*5/6 - 40, height - 72, 80, 20, "Cancel"));
 			break;
@@ -321,6 +322,12 @@ public class BattleGui extends GuiScreen {
 			info[0] = "You switched weapons!";
 			info[1] = "Waiting for server...";
 			break;
+		case 7: //Dodge/Counter menu
+			info[0] = "Select your expected attacker!";
+			break;
+		case 8:
+			info[0] = "You prepare to counter that combatant!";
+			info[1] = "Waiting for server...";
 		default:
 			break;
 		}
@@ -332,39 +339,48 @@ public class BattleGui extends GuiScreen {
 	 */
 	@Override
 	protected void actionPerformed(GuiButton button) {
-		if(button.id == 2) //Flee
+		combatantButton = false;
+		
+		switch(button.id)
 		{
+		case 2: //flee
 			player.type = Type.FLEE;
 			player.target = player.id;
 			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
 			turnChoiceSent = true;
-		}
-		
-		if(button.id == 3) //Show attack menu
-		{
+			break;
+		case 3: //attack menu
 			combatantButton = true;
 			combatantButtonPopulated = false;
-		}
-		else
-			combatantButton = false;
-		
-		if(button.id == 5) //Attack phase
-		{
+			counterMenu = false;
+			break;
+		case 5: //attack
 			player.target = ((IDSelectionButton)button).entityID;
 			player.type = Type.ATTACK;
 			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
 			turnChoiceSent = true;
-		}
-		
-		if(button.id == 6)
-		{
+			break;
+		case 6: //change weapon
 			int itemStackID = ((ItemSelectionButton)button).getItemStackID();
 			Minecraft.getMinecraft().thePlayer.inventory.currentItem = itemStackID;
 			
-			player.type = Type.CHANGE_ITEM;
+			player.type = Type.CHANGE_WEAPON;
 			player.target = player.id;
 			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
 			turnChoiceSent = true;
+			break;
+		case 7: //dodge/counter menu
+			combatantButton = true;
+			combatantButtonPopulated = false;
+			counterMenu = true;
+			break;
+		case 8: //dodge/counter
+			player.target = ((IDSelectionButton)button).entityID;
+			player.type = Type.DODGE_COUNTER;
+			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
+			turnChoiceSent = true;
+			break;
+		default: break;
 		}
 		
 		getMenu(button.id);

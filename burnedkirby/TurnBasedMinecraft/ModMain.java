@@ -36,7 +36,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 channels = {CommandPacket.CHANNEL}, packetHandler = CommandPacketHandler.class)
 
 
-@Mod(modid="mod_BurnedKirbyTurnBasedMinecraft",name="BurnedKirby's Turn-Based Minecraft",version="0.2.4")
+@Mod(modid="mod_BurnedKirbyTurnBasedMinecraft",name="BurnedKirby's Turn-Based Minecraft",version="0.2.5")
 public class ModMain {
 	@Instance("BurnedKirbyTurnBasedBattleSystem")
 	public static ModMain instance = new ModMain();
@@ -45,11 +45,24 @@ public class ModMain {
 	public static CommonProxy proxy;
 	
 	public static BattleSystemServer bss = new BattleSystemServer();
+
+	public static final String modFolder = "./TurnBasedMinecraft";
+	
+	public static final String battleSettingsFile = modFolder + "/battleSettings.xml";
+
+	public static final Float default_evasionRate = 0.12f;
+
+	public static final Float default_criticalRate = 0.08f;
+
+	public static final Float default_onDodgeEvasionRate = 0.09f;
+	
+	
 	
 	@Init
 	public void initialize(FMLInitializationEvent event){
 		MinecraftForge.EVENT_BUS.register(new BattleEventListener());
 		
+		proxy.initializeSettings();
 		proxy.initializeMusicManager();
 	}
 	

@@ -78,7 +78,6 @@ public class BattleStatusPacket extends CommandPacket {
 		}
 		else
 		{
-			System.out.println("BattleStatusPacket: found is " + found + ", received playerPhase is " + playerPhase + ", turnReceived is " + turnChoiceReceived);
 			if(found) //TODO check if null pointer exception can happen
 			{
 				if(((BattleGui)ModMain.proxy.getGui()) == null && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
