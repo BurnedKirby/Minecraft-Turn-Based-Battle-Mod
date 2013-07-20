@@ -5,14 +5,14 @@ import net.minecraft.client.gui.GuiButton;
 
 public class ItemSelectionButton extends GuiButton {
 	
-	private int itemStackID;
+	private short itemStackID;
 
-	public ItemSelectionButton(int buttonID, int x, int y, String text, int itemStackID) {
+	public ItemSelectionButton(int buttonID, int x, int y, String text, short itemStackID) {
 		super(buttonID, x, y, text);
 		this.itemStackID = itemStackID;
 	}
 	
-	public ItemSelectionButton(int buttonID, int x, int y, int width, int height, String text, int itemStackID)
+	public ItemSelectionButton(int buttonID, int x, int y, int width, int height, String text, short itemStackID)
 	{
 		super(buttonID, x, y, width, height, text);
 		this.itemStackID = itemStackID;
@@ -30,7 +30,7 @@ public class ItemSelectionButton extends GuiButton {
 		}
 	}
 	
-	public int getItemStackID()
+	public short getItemStackID()
 	{
 		return itemStackID;
 	}

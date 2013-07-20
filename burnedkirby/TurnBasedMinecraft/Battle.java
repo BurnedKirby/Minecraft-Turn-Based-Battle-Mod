@@ -160,7 +160,9 @@ public class Battle{
 		}
 		
 		if(combatants.containsKey(combatant.id) && combatants.containsKey(combatant.target))
+		{
 			combatants.get(combatant.id).updateBattleInformation(combatant);
+		}
 		else
 			notifyPlayers(false);
 	}

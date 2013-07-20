@@ -50,25 +50,4 @@ public class BattleEventListener {
 //			if(!Battle.playerAttacking && !(event.source.getEntity() instanceof EntityPlayer)) //TODO go over this again
 //				event.setCanceled(true);
 	}
-	
-	@ForgeSubscribe
-	public void entityUpdate(LivingUpdateEvent event)
-	{
-		if(event.entity.worldObj.isRemote)
-			return;
-		
-		if(ModMain.bss.inBattle.contains(event.entity.entityId))
-			event.setCanceled(true);
-	}
-	
-	/**
-	 * LivingDeathEvent handler that alls BattleSystemServer's combatantDeath
-	 * method with the entity that has perished.
-	 * @param event The LivingDeathEvent this method handles.
-	 */
-//	@ForgeSubscribe
-//	public void livingDeathEvent(LivingDeathEvent event)
-//	{
-//		ModMain.bss.manageCombatantDeath(event.entity);
-//	}
 }

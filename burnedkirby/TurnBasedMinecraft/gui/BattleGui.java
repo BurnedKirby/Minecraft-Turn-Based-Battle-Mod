@@ -308,7 +308,7 @@ public class BattleGui extends GuiScreen {
 			break;
 		case 4: //Change weapon menu
 			info[0] = "Pick your weapon!";
-			for(int i=0; i < 9; i++)
+			for(short i=0; i < 9; i++)
 			{
 				buttonList.add(new ItemSelectionButton(6, width/2 - 88 + i * 20, height - 19, 16, 16, "", i));
 			}
@@ -361,7 +361,7 @@ public class BattleGui extends GuiScreen {
 			turnChoiceSent = true;
 			break;
 		case 6: //change weapon
-			int itemStackID = ((ItemSelectionButton)button).getItemStackID();
+			short itemStackID = ((ItemSelectionButton)button).getItemStackID();
 			Minecraft.getMinecraft().thePlayer.inventory.currentItem = itemStackID;
 			
 			player.type = Type.CHANGE_WEAPON;
