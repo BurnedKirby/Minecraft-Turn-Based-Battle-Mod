@@ -32,8 +32,8 @@ public class CombatantInfo implements Comparable{
 	 * criticalRate: default critical hit rate for a combatant.
 	 * onDodgeEvasionRate: evasion rate when dodging an attack from a combatant that wasn't selected.
 	 * onCorrectDodgeEvasionRate: evasion rate when dodging an attack from a combatant that was selected.
-	 * counterRateAfterHit: counter-attack rate after being hit by a combatant.
-	 * counterRateAfterMiss: counter-attack rate after dodging an attack by a combatant.
+	 * counterRateAfterHit: counter-attack rate after being hit by a selected combatant.
+	 * counterRateAfterMiss: counter-attack rate after dodging an attack by a selected combatant.
 	 * onCorrectDodgeHitBonus: hit bonus that increases the chances of hitting a combatant on the next turn.
 	 * onCorrectDodgeCriticalBonus: critical bonus that increases the chances of a critical hit on a combatant on the next turn.
 	 */
