@@ -49,12 +49,6 @@ public class ModMain {
 	public static final String modFolder = "./TurnBasedMinecraft";
 	
 	public static final String battleSettingsFile = modFolder + "/battleSettings.xml";
-
-	public static final Float default_evasionRate = 0.12f;
-
-	public static final Float default_criticalRate = 0.08f;
-
-	public static final Float default_onDodgeEvasionRate = 0.09f;
 	
 	
 	
