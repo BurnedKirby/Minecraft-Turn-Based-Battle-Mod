@@ -11,6 +11,10 @@ To use, check out the Downloads page on the wiki to get the latest compiled vers
 Alternatively, setup Minecraft Forge 1.6.2-9.10.0.789 and place the "burnedkirby" folder in src for compiling.
 
 
+Notice: The mod will create a directory in the .minecraft folder. There you can find configs and a directory to place custom battle music in.
+
+
+
 There exists a minecraftforum.net thread at http://www.minecraftforum.net/topic/1894841-turn-based-minecraft/ but I will be checking GitHub more often than the thread.
 
 It is best to contact me via burnedkirby@gmail.com (for now).
