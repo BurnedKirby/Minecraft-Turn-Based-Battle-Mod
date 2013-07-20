@@ -36,7 +36,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 channels = {CommandPacket.CHANNEL}, packetHandler = CommandPacketHandler.class)
 
 
-@Mod(modid="mod_BurnedKirbyTurnBasedMinecraft",name="BurnedKirby's Turn-Based Minecraft",version="0.2.5")
+@Mod(modid="mod_BurnedKirbyTurnBasedMinecraft",name="BurnedKirby's Turn-Based Minecraft",version="0.2.6")
 public class ModMain {
 	@Instance("BurnedKirbyTurnBasedBattleSystem")
 	public static ModMain instance = new ModMain();
