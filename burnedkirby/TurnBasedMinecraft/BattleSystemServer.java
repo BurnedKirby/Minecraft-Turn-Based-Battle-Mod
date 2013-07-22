@@ -1,6 +1,8 @@
 package burnedkirby.TurnBasedMinecraft;
 
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Stack;
@@ -51,10 +53,11 @@ public class BattleSystemServer {
 	
 	public Map<String, Boolean> ignoreSystemEntityMap;
 	private Map<Integer,Battle> battles;
+	private Stack<List<Integer>> justEntered;
 	protected CombatantInfoSet inBattle;
 	protected CombatantInfoSet exitedBattle;
 
-	protected static int battleIDCounter = 0; //TODO maybe split this per world
+	protected static int battleIDCounter = 0;
 	
 	protected static Random random;
 	
@@ -62,6 +65,7 @@ public class BattleSystemServer {
 	protected static Object attackingLock;
 	
 	private Thread battleUpdateThread;
+	private Thread recentlyAddedUpdateThread;
 	
 	protected static final int exitCooldownTime = 5;
 	
@@ -103,6 +107,7 @@ public class BattleSystemServer {
 		battles = new TreeMap<Integer,Battle>();
 		inBattle = new CombatantInfoSet();
 		exitedBattle = new CombatantInfoSet();
+		justEntered = new Stack<List<Integer>>();
 		random = new Random(System.currentTimeMillis());
 		battleUpdateThread = null;
 		attackingEntity = null;
@@ -135,6 +140,13 @@ public class BattleSystemServer {
 		inBattle |= isInBattle(entityAttacker.entityId) ? 0x1 : 0x0;
 		inBattle |= isInBattle(entityAttacked.entityId) ? 0x2 : 0x0;
 		
+		List<Integer> recentlyAdded;
+		synchronized(justEntered)
+		{
+			recentlyAdded = justEntered.isEmpty() ? null : justEntered.pop();
+		}
+		List<Integer> justAdded;
+		
 		System.out.println("attack event status " + inBattle);
 
 		switch(inBattle)
@@ -156,6 +168,18 @@ public class BattleSystemServer {
 			System.out.println("New battle " + battleIDCounter + " created.");
 			battleIDCounter++;
 			returnValue = false;
+			justAdded = new LinkedList<Integer>();
+			justAdded.add(entityAttacker.entityId);
+			justAdded.add(entityAttacked.entityId);
+			synchronized(justEntered)
+			{
+				justEntered.push(justAdded);
+			}
+			if(recentlyAddedUpdateThread == null || !recentlyAddedUpdateThread.isAlive())
+			{
+				recentlyAddedUpdateThread = new Thread(new RecentlyAddedUpdate());
+				recentlyAddedUpdateThread.start();
+			}
 			break;
 		case 0x1:
 		case 0x2:
@@ -169,12 +193,35 @@ public class BattleSystemServer {
 				
 				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.entityId, newCombatant, isSideOne, newCombatant.getEntityName(), false, Type.DO_NOTHING, inBattleCombatant.entityId));
 			}
-			returnValue = false;
+			returnValue = true;
+			justAdded = new LinkedList<Integer>();
+			justAdded.add(newCombatant.entityId);
+			synchronized(justEntered)
+			{
+				justEntered.push(justAdded);
+			}
+			if(recentlyAddedUpdateThread == null || !recentlyAddedUpdateThread.isAlive())
+			{
+				recentlyAddedUpdateThread = new Thread(new RecentlyAddedUpdate());
+				recentlyAddedUpdateThread.start();
+			}
 			break;
 		case 0x3:
 			if(entityAttacker == attackingEntity)
 			{
 				returnValue = false;
+				break;
+			}
+			else if(recentlyAdded != null)
+			{
+				for(int i : recentlyAdded)
+				{
+					if(i == entityAttacker.entityId || i == entityAttacked.entityId)
+					{
+						returnValue = false;
+						break;
+					}
+				}
 				break;
 			}
 			returnValue = true;
@@ -252,6 +299,22 @@ public class BattleSystemServer {
 				return;
 			}
 			battles.get(battleID).updatePlayerStatus(player);
+		}
+	}
+	
+	public class RecentlyAddedUpdate implements Runnable
+	{
+		@Override
+		public void run() {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {}
+			
+			synchronized(justEntered)
+			{
+				if(!justEntered.isEmpty())
+					justEntered.pop();
+			}
 		}
 	}
 	
@@ -366,7 +429,7 @@ public class BattleSystemServer {
 			return ignoreSystemEntityMap.get("Slime");
 		else if(entity instanceof EntitySnowman)
 			return ignoreSystemEntityMap.get("Snowman");
-		else if(entity instanceof EntitySpider)
+		else if(entity instanceof EntitySpider) //Potential bug here since CaveSpiders are also Spiders, but it gets checked against Cave Spiders first in this ordering so it's fine
 			return ignoreSystemEntityMap.get("Spider");
 		else if(entity instanceof EntityWitch)
 			return ignoreSystemEntityMap.get("Witch");

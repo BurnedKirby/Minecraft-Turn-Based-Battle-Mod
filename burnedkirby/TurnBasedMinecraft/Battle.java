@@ -1,39 +1,28 @@
 package burnedkirby.TurnBasedMinecraft;
 
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.Vector;
 
+import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.boss.EntityDragon;
+import net.minecraft.entity.monster.EntityGhast;
+import net.minecraft.entity.monster.EntityGolem;
+import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.monster.EntitySlime;
+import net.minecraft.entity.passive.EntityAnimal;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.scoreboard.ScorePlayerTeam;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleCombatantPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleMessagePacket;
-import burnedkirby.TurnBasedMinecraft.core.network.BattlePhaseEndedPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.CombatantHealthPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.InitiateBattlePacket;
-
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.passive.EntityAnimal;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.scoreboard.ScorePlayerTeam;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.DamageSource;
-import net.minecraft.world.MinecraftException;
 
 public class Battle{
 	private Map<Integer,CombatantInfo> combatants;
@@ -78,7 +67,7 @@ public class Battle{
 				PacketDispatcher.sendPacketToPlayer(new InitiateBattlePacket(battleID,combatant).makePacket(), (Player)combatant.entityReference);
 				combatant.setTurnTickTimer(turnTickTime);
 			}
-			else if(combatant.entityReference instanceof EntityMob)
+			else if(isFightingEntity(combatant.entityReference))
 			{
 				combatant.type = Type.ATTACK;
 			}
@@ -100,7 +89,7 @@ public class Battle{
 	{
 		if(status == BattleStatus.PLAYER_PHASE)
 		{
-			if(newCombatant.entityReference instanceof EntityMob)
+			if(isFightingEntity(newCombatant.entityReference))
 			{
 				newCombatant.type = Type.ATTACK;
 			}
@@ -170,6 +159,15 @@ public class Battle{
 	public boolean isInBattle(int id)
 	{
 		return combatants.containsKey(id);
+	}
+	
+	public boolean isFightingEntity(EntityLivingBase entity)
+	{
+		return entity instanceof EntityMob
+				|| entity instanceof EntityGolem
+				|| entity instanceof EntityDragon
+				|| entity instanceof EntitySlime
+				|| entity instanceof EntityGhast;
 	}
 	
 	private boolean getPlayersReady()
@@ -371,17 +369,77 @@ public class Battle{
 							notifyPlayersWithMessage(name + " attacks " + targetName + "!");
 						ModMain.bss.attackingEntity = combatantEntity;
 						((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
+						ModMain.bss.attackingEntity = null;
 					}
 				}
-				else if(combatantEntity instanceof EntityMob)
+				else if(combatantEntity instanceof EntityMob || combatantEntity instanceof EntityGolem)
 				{
 					if(((EntityCreature)combatantEntity).getEntityToAttack() instanceof EntityLivingBase && combatants.containsKey(((EntityMob) combatantEntity).getEntityToAttack().entityId))
-						targetEntity = (EntityLivingBase) ((EntityMob)combatantEntity).getEntityToAttack();
+						targetEntity = (EntityLivingBase) ((EntityCreature)combatantEntity).getEntityToAttack();
 					else
 						targetEntity = null;
 					
+					System.out.println(combatantEntity.getEntityName() + " targeting " + (targetEntity != null ? targetEntity.getEntityName() : "null"));
+					
 					if(targetEntity == null)
 					{
+						rand = ModMain.bss.random.nextInt(combatants.size()) + combatants.size();
+						int k=0,j=0,picked=0;
+						boolean nonPlayersExist = true;
+						for(; j<rand; k++)
+						{
+							if(combatantEntity instanceof EntityGolem && !combatantArray[k % combatantArray.length].isPlayer
+									&& combatantArray[k % combatantArray.length].id != combatantEntity.entityId && nonPlayersExist)
+							{
+								j++;
+								picked = k % combatantArray.length;
+							}
+							else if(combatantArray[k % combatantArray.length].isPlayer)
+							{
+								j++;
+								picked = k % combatantArray.length;
+							}
+							if(k > combatants.size() && j == 0)
+							{
+								if(combatantEntity instanceof EntityGolem)
+								{
+									nonPlayersExist = false;
+									k=0;
+									j=0;
+									continue;
+								}
+								picked = -1;
+								break;
+							}
+						}
+						if(picked == -1)
+							continue;
+						targetEntity = combatantArray[picked].entityReference;
+					}
+					
+					if(missCheck(combatant, combatants.get(targetEntity.entityId)))
+					{
+						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(combatantEntity.getEntityName()), combatantEntity.getEntityName());
+						targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
+						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
+					}
+					else
+					{
+						targetEntity.hurtResistantTime = 0;
+						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(combatantEntity.getEntityName()), combatantEntity.getEntityName());
+						targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
+						notifyPlayersWithMessage(name + " attacks " + targetName + "!");
+						ModMain.bss.attackingEntity = combatantEntity;
+						(combatantEntity).attackEntityAsMob(targetEntity);
+						ModMain.bss.attackingEntity = null;
+					}
+				}
+				else if(combatantEntity instanceof EntitySlime)
+				{
+					targetEntity = ((EntitySlime)combatantEntity).worldObj.getClosestVulnerablePlayerToEntity(combatantEntity, 16.0);
+					if(targetEntity == null || !combatants.containsKey(targetEntity.entityId))
+					{
+
 						rand = ModMain.bss.random.nextInt(combatants.size()) + combatants.size();
 						int k=0,j=0,picked=0;
 						for(; j<rand; k++)
@@ -415,7 +473,8 @@ public class Battle{
 						targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetEntity.getEntityName()), targetEntity.getEntityName());
 						notifyPlayersWithMessage(name + " attacks " + targetName + "!");
 						ModMain.bss.attackingEntity = combatantEntity;
-						((EntityMob)combatantEntity).attackEntityAsMob(targetEntity);
+						((EntitySlime)combatantEntity).onCollideWithPlayer((EntityPlayer)targetEntity);
+						ModMain.bss.attackingEntity = null;
 					}
 				}
 				else
@@ -427,9 +486,9 @@ public class Battle{
 					targetEntity.hurtResistantTime = 0;
 					ModMain.bss.attackingEntity = targetEntity;
 					((EntityPlayer)targetEntity).attackTargetEntityWithCurrentItem(combatant.entityReference);
+					ModMain.bss.attackingEntity = null;
 				}
 				
-				ModMain.bss.attackingEntity = null;
 			}
 		}
 		
