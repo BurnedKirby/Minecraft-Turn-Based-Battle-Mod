@@ -41,7 +41,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 channels = {CommandPacket.CHANNEL}, packetHandler = CommandPacketHandler.class)
 
 
-@Mod(modid="mod_BurnedKirbyTurnBasedMinecraft",name="BurnedKirby's Turn-Based Minecraft",version="0.2.8")
+@Mod(modid="mod_BurnedKirbyTurnBasedMinecraft",name="BurnedKirby's Turn-Based Minecraft",version="0.2.9")
 public class ModMain {
 	
 	public static String versionNumber;

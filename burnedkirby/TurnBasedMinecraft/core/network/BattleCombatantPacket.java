@@ -66,7 +66,8 @@ public class BattleCombatantPacket extends CommandPacket {
 		}
 		else
 		{
-			((BattleGui)ModMain.proxy.getGui()).receiveCombatant(combatant);
+			if(ModMain.proxy.getGui() != null)
+				((BattleGui)ModMain.proxy.getGui()).receiveCombatant(combatant);
 		}
 	}
 
