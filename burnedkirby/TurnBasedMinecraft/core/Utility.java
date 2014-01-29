@@ -25,4 +25,9 @@ public class Utility {
 		}
 		return null;
 	}
+	
+	static public void log(String log)
+	{
+		System.out.println("[BK_TBM] " + log);
+	}
 }
