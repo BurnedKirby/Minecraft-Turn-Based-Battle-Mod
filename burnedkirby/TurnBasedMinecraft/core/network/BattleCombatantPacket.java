@@ -1,20 +1,15 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
-import java.io.EOFException;
-import java.io.IOException;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+
+import java.io.UnsupportedEncodingException;
 
 import net.minecraft.entity.player.EntityPlayer;
-
 import burnedkirby.TurnBasedMinecraft.CombatantInfo;
-import burnedkirby.TurnBasedMinecraft.ModMain;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
-import burnedkirby.TurnBasedMinecraft.core.ClientProxy;
+import burnedkirby.TurnBasedMinecraft.ModMain;
 import burnedkirby.TurnBasedMinecraft.gui.BattleGui;
-
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-
-import cpw.mods.fml.relauncher.Side;
 
 /**
  * This packet is sent from server to player with information on a combatant that is
@@ -22,7 +17,7 @@ import cpw.mods.fml.relauncher.Side;
  * This is sent as a response from the player's BattleQueryPacket.
  *
  */
-public class BattleCombatantPacket extends CommandPacket {
+public class BattleCombatantPacket extends AbstractPacket {
 
 	CombatantInfo combatant;
 	
@@ -34,7 +29,7 @@ public class BattleCombatantPacket extends CommandPacket {
 	public BattleCombatantPacket() {
 		combatant = new CombatantInfo();
 	}
-	
+/*	
 	@Override
 	public void write(ByteArrayDataOutput out) {
 		out.writeBoolean(combatant.isPlayer);
@@ -69,6 +64,49 @@ public class BattleCombatantPacket extends CommandPacket {
 			if(ModMain.proxy.getGui() != null)
 				((BattleGui)ModMain.proxy.getGui()).receiveCombatant(combatant);
 		}
+	}*/
+
+	@Override
+	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
+		buffer.writeBoolean(combatant.isPlayer);
+		buffer.writeInt(combatant.id);
+		buffer.writeBoolean(combatant.isSideOne);
+		try {
+			encodeUTF(combatant.name, buffer);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return;
+		}
+		buffer.writeBoolean(combatant.ready);
+		buffer.writeInt(combatant.type.ordinal());
+		buffer.writeInt(combatant.target);
+	}
+
+	@Override
+	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
+		combatant.isPlayer = buffer.readBoolean();
+		combatant.id = buffer.readInt();
+		combatant.isSideOne = buffer.readBoolean();
+		try {
+			combatant.name = decodeUTF(buffer);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return;
+		}
+		combatant.ready = buffer.readBoolean();
+		combatant.type = Type.values()[buffer.readInt()];
+		combatant.target = buffer.readInt();
+	}
+
+	@Override
+	public void handleClientSide(EntityPlayer player) {
+		if(ModMain.proxy.getGui() != null)
+			((BattleGui)ModMain.proxy.getGui()).receiveCombatant(combatant);
+	}
+
+	@Override
+	public void handleServerSide(EntityPlayer player) {
+		
 	}
 
 }

@@ -1,22 +1,41 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.entity.player.EntityPlayer;
-
-import burnedkirby.TurnBasedMinecraft.ModMain;
-
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-
-import cpw.mods.fml.relauncher.Side;
 
 /**
  * This packet sent from server to player notifies the player that a turn has
  * ended and the Battle GUI can now return to the main menu.
  *
  */
-public class BattlePhaseEndedPacket extends CommandPacket {
+public class BattlePhaseEndedPacket extends AbstractPacket {
 
 	@Override
+	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void handleClientSide(EntityPlayer player) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void handleServerSide(EntityPlayer player) {
+		// TODO Auto-generated method stub
+		
+	}
+
+/*	@Override
 	public void write(ByteArrayDataOutput out) {
 		// TODO Auto-generated method stub
 
@@ -39,6 +58,6 @@ public class BattlePhaseEndedPacket extends CommandPacket {
 		{
 //			ModMain.bg.updateTurnEnd(true);
 		}
-	}
+	}*/
 
 }

@@ -1,25 +1,15 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
-import java.util.Enumeration;
-import java.util.Vector;
-
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.entity.player.EntityPlayer;
-
 import burnedkirby.TurnBasedMinecraft.ModMain;
-import burnedkirby.TurnBasedMinecraft.core.Utility;
-
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
-import cpw.mods.fml.relauncher.Side;
 
 /**
  * Packet sent by player in battle to server that is a query for battle status.
  *
  */
-public class BattleQueryPacket extends CommandPacket {
+public class BattleQueryPacket extends AbstractPacket {
 	
 	int battleID;
 	short type;
@@ -33,6 +23,27 @@ public class BattleQueryPacket extends CommandPacket {
 	public BattleQueryPacket() {}
 
 	@Override
+	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
+		buffer.writeInt(battleID);
+		buffer.writeShort(type);
+	}
+
+	@Override
+	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
+		battleID = buffer.readInt();
+		type = buffer.readShort();
+	}
+
+	@Override
+	public void handleClientSide(EntityPlayer player) {
+	}
+
+	@Override
+	public void handleServerSide(EntityPlayer player) {
+		ModMain.bss.manageQuery(battleID, type, player);
+	}
+
+/*	@Override
 	public void write(ByteArrayDataOutput out) {
 		out.writeInt(battleID);
 		out.writeShort(type);
@@ -42,13 +53,13 @@ public class BattleQueryPacket extends CommandPacket {
 	public void read(ByteArrayDataInput in) {
 		battleID = in.readInt();
 		type = in.readShort();
-	}
+	}*/
 
 	/**
 	 * If battle does not exist or has ended, will send a BattleStatusPacket that the battle
 	 * has ended.
 	 */
-	@Override
+/*	@Override
 	public void execute(EntityPlayer player, Side side) throws ProtocolException {
 		if(side.isServer())
 		{
@@ -98,6 +109,6 @@ public class BattleQueryPacket extends CommandPacket {
 		{
 			//throw new ProtocolException("Packet can only be received by the server!");
 		}
-	}
+	}*/
 
 }

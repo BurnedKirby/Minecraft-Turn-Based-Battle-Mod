@@ -1,22 +1,20 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+
+import java.io.UnsupportedEncodingException;
+
 import net.minecraft.entity.player.EntityPlayer;
-
-import burnedkirby.TurnBasedMinecraft.Battle;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo;
-import burnedkirby.TurnBasedMinecraft.ModMain;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
-
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-
-import cpw.mods.fml.relauncher.Side;
+import burnedkirby.TurnBasedMinecraft.ModMain;
 
 /**
  * Packet sent to server from the player that has information
  * on what the player has decided to do on their turn.
  */
-public class BattleCommandPacket extends CommandPacket {
+public class BattleCommandPacket extends AbstractPacket {
 	
 	private int battleID;
 	private CombatantInfo combatant;
@@ -32,6 +30,49 @@ public class BattleCommandPacket extends CommandPacket {
 	}
 
 	@Override
+	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
+		buffer.writeInt(battleID);
+		buffer.writeBoolean(combatant.isPlayer);
+		buffer.writeInt(combatant.id);
+		buffer.writeBoolean(combatant.isSideOne);
+		try {
+			encodeUTF(combatant.name, buffer);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return;
+		}
+		buffer.writeBoolean(combatant.ready);
+		buffer.writeInt(combatant.type.ordinal());
+		buffer.writeInt(combatant.target);
+	}
+
+	@Override
+	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
+		battleID = buffer.readInt();
+		combatant.isPlayer = buffer.readBoolean();
+		combatant.id = buffer.readInt();
+		combatant.isSideOne = buffer.readBoolean();
+		try {
+			combatant.name = decodeUTF(buffer);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return;
+		}
+		combatant.ready = buffer.readBoolean();
+		combatant.type = Type.values()[buffer.readInt()];
+		combatant.target = buffer.readInt();
+	}
+
+	@Override
+	public void handleClientSide(EntityPlayer player) {
+	}
+
+	@Override
+	public void handleServerSide(EntityPlayer player) {
+		ModMain.bss.managePlayerUpdate(battleID, combatant);
+	}
+
+/*	@Override
 	public void write(ByteArrayDataOutput out) {
 		out.writeInt(battleID);
 		out.writeBoolean(combatant.isPlayer);
@@ -65,6 +106,6 @@ public class BattleCommandPacket extends CommandPacket {
 		{
 			
 		}
-	}
+	}*/
 
 }

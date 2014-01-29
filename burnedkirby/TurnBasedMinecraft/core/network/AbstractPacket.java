@@ -1,8 +1,9 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
+import java.io.UnsupportedEncodingException;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-
 import net.minecraft.entity.player.EntityPlayer;
 
 /**
@@ -21,4 +22,18 @@ public abstract class AbstractPacket {
 	public abstract void handleClientSide(EntityPlayer player);
 	
 	public abstract void handleServerSide(EntityPlayer player);
+	
+	protected void encodeUTF(String msg, ByteBuf buffer) throws UnsupportedEncodingException
+	{
+		buffer.writeInt(msg.length());
+		buffer.writeBytes(msg.getBytes("UTF-8"));
+	}
+	
+	protected String decodeUTF(ByteBuf buffer) throws UnsupportedEncodingException
+	{
+		int length = buffer.readInt();
+		byte[] data = null;
+		buffer.readBytes(length).readBytes(data);
+		return new String(data, "UTF-8");
+	}
 }

@@ -1,28 +1,19 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 
-import net.minecraft.client.Minecraft;
+import java.io.UnsupportedEncodingException;
+
 import net.minecraft.entity.player.EntityPlayer;
-
 import burnedkirby.TurnBasedMinecraft.CombatantInfo;
 import burnedkirby.TurnBasedMinecraft.ModMain;
-import burnedkirby.TurnBasedMinecraft.core.ClientProxy;
-import burnedkirby.TurnBasedMinecraft.core.CommonProxy;
-import burnedkirby.TurnBasedMinecraft.gui.BattleGui;
-
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-
-import cpw.mods.fml.relauncher.Side;
 
 /**
  * Packet sent to player from the server which notifies the player of
  * entering battle and brings up the BattleGUI.
  */
-public class InitiateBattlePacket extends CommandPacket {
+public class InitiateBattlePacket extends AbstractPacket {
 	
 	int battleID;
 	CombatantInfo player;
@@ -38,6 +29,41 @@ public class InitiateBattlePacket extends CommandPacket {
 	}
 
 	@Override
+	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
+		buffer.writeInt(battleID);
+		buffer.writeBoolean(player.isPlayer);
+		buffer.writeInt(player.id);
+		buffer.writeBoolean(player.isSideOne);
+		try {
+			encodeUTF(player.name, buffer);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
+		battleID = buffer.readInt();
+		player.isPlayer = buffer.readBoolean();
+		player.id = buffer.readInt();
+		player.isSideOne = buffer.readBoolean();
+		try {
+			player.name = decodeUTF(buffer);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void handleClientSide(EntityPlayer player) {
+		ModMain.proxy.newGui(battleID, this.player);
+	}
+
+	@Override
+	public void handleServerSide(EntityPlayer player) {
+	}
+
+/*	@Override
 	public void write(ByteArrayDataOutput out) {
 		out.writeInt(battleID);
 		out.writeBoolean(player.isPlayer);
@@ -65,6 +91,6 @@ public class InitiateBattlePacket extends CommandPacket {
 		{
 			ModMain.proxy.newGui(battleID, this.player);
 		}
-	}
+	}*/
 
 }
