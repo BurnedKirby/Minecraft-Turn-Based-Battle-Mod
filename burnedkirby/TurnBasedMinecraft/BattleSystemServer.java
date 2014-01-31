@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.Stack;
 import java.util.TreeMap;
 
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.boss.EntityWither;
@@ -39,12 +40,11 @@ import net.minecraft.entity.passive.EntitySquid;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.passive.EntityWolf;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
 import burnedkirby.TurnBasedMinecraft.core.CombatantInfoSet;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
 
 public class BattleSystemServer {
 	/**
@@ -129,7 +129,7 @@ public class BattleSystemServer {
 				|| (entityAttacker instanceof EntityPlayer && ((EntityPlayer)entityAttacker).capabilities.isCreativeMode)
 				|| (entityAttacked instanceof EntityPlayer && ((EntityPlayer)entityAttacked).capabilities.isCreativeMode))
 			return false;
-		else if(exitedBattle.contains(entityAttacker.entityId) || exitedBattle.contains(entityAttacked.entityId))
+		else if(exitedBattle.contains(entityAttacker.func_145782_y()) || exitedBattle.contains(entityAttacked.func_145782_y()))
 		{
 			System.out.println("Canceled attack due to exitedbattle containing entity.");
 			return true;
@@ -137,8 +137,8 @@ public class BattleSystemServer {
 		
 		boolean returnValue = false;
 		short inBattle = 0x0;
-		inBattle |= isInBattle(entityAttacker.entityId) ? 0x1 : 0x0;
-		inBattle |= isInBattle(entityAttacked.entityId) ? 0x2 : 0x0;
+		inBattle |= isInBattle(entityAttacker.func_145782_y()) ? 0x1 : 0x0;
+		inBattle |= isInBattle(entityAttacked.func_145782_y()) ? 0x2 : 0x0;
 		
 		List<Integer> recentlyAdded;
 		synchronized(justEntered)
@@ -159,8 +159,18 @@ public class BattleSystemServer {
 			}
 			
 			Stack<CombatantInfo> combatants = new Stack<CombatantInfo>();
-			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.entityId, entityAttacker, true, entityAttacker.getEntityName(), false, Type.DO_NOTHING, entityAttacked.entityId));
-			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.entityId, entityAttacked, false, entityAttacked.getEntityName(), false, Type.DO_NOTHING, entityAttacked.getAITarget() != null ? entityAttacked.getAITarget().entityId : 0));
+
+			String attackerName = null;
+			String attackedName = null;
+			
+			if((attackerName = EntityList.getEntityString(entityAttacker)) == null)
+				attackerName = ((EntityPlayer)entityAttacker).getDisplayName();
+
+			if((attackedName = EntityList.getEntityString(entityAttacked)) == null)
+				attackedName = ((EntityPlayer)entityAttacked).getDisplayName();
+			
+			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.func_145782_y(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.func_145782_y()));
+			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.func_145782_y(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacked.getAITarget() != null ? entityAttacked.getAITarget().func_145782_y() : 0));
 			synchronized(battles)
 			{
 				battles.put(battleIDCounter,new Battle(battleIDCounter, combatants));
@@ -169,8 +179,8 @@ public class BattleSystemServer {
 			battleIDCounter++;
 			returnValue = false;
 			justAdded = new LinkedList<Integer>();
-			justAdded.add(entityAttacker.entityId);
-			justAdded.add(entityAttacked.entityId);
+			justAdded.add(entityAttacker.func_145782_y());
+			justAdded.add(entityAttacked.func_145782_y());
 			synchronized(justEntered)
 			{
 				justEntered.push(justAdded);
@@ -189,13 +199,18 @@ public class BattleSystemServer {
 			synchronized(battles)
 			{
 				Battle battleToJoin;
-				boolean isSideOne = !((battleToJoin = findBattleByEntityID(inBattleCombatant.entityId)).getCombatant(inBattleCombatant.entityId).isSideOne);
+				boolean isSideOne = !((battleToJoin = findBattleByEntityID(inBattleCombatant.func_145782_y())).getCombatant(inBattleCombatant.func_145782_y()).isSideOne);
 				
-				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.entityId, newCombatant, isSideOne, newCombatant.getEntityName(), false, Type.DO_NOTHING, inBattleCombatant.entityId));
+				String newName = null;
+				
+				if((newName = EntityList.getEntityString(newCombatant)) == null)
+					newName = ((EntityPlayer)newCombatant).getDisplayName();
+				
+				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.func_145782_y(), newCombatant, isSideOne, newName, false, Type.DO_NOTHING, inBattleCombatant.func_145782_y()));
 			}
 			returnValue = true;
 			justAdded = new LinkedList<Integer>();
-			justAdded.add(newCombatant.entityId);
+			justAdded.add(newCombatant.func_145782_y());
 			synchronized(justEntered)
 			{
 				justEntered.push(justAdded);
@@ -216,7 +231,7 @@ public class BattleSystemServer {
 			{
 				for(int i : recentlyAdded)
 				{
-					if(i == entityAttacker.entityId || i == entityAttacked.entityId)
+					if(i == entityAttacker.func_145782_y() || i == entityAttacked.func_145782_y())
 					{
 						returnValue = false;
 						break;
@@ -272,7 +287,7 @@ public class BattleSystemServer {
 
 			if(battles.get(battleID) == null)
 			{
-				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false).makePacket(), (Player)player);
+				ModMain.pp.sendTo(new BattleStatusPacket(false), (EntityPlayerMP)player);
 				return;
 			}
 			switch(type)
@@ -295,7 +310,7 @@ public class BattleSystemServer {
 		{
 			if(battles.get(battleID) == null)
 			{
-				PacketDispatcher.sendPacketToPlayer(new BattleStatusPacket(false).makePacket(), (Player)player.entityReference);
+				ModMain.pp.sendTo(new BattleStatusPacket(false), (EntityPlayerMP)player.entityReference);
 				return;
 			}
 			battles.get(battleID).updatePlayerStatus(player);

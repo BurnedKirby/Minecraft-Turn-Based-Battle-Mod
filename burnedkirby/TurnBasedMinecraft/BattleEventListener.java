@@ -1,24 +1,10 @@
 package burnedkirby.TurnBasedMinecraft;
 
-import burnedkirby.TurnBasedMinecraft.core.network.BattleQueryPacket;
-import burnedkirby.TurnBasedMinecraft.core.network.InitiateBattlePacket;
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.MinecraftException;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class BattleEventListener {
 	
@@ -28,7 +14,7 @@ public class BattleEventListener {
 	 * battle or if they are already in battle.
 	 * @param event The LivingAtttackEvent this method handles.
 	 */
-	@ForgeSubscribe
+	@SubscribeEvent
 	public void entityAttacked(LivingAttackEvent event)
 	{
 		if(event.entity.worldObj.isRemote)
@@ -40,9 +26,27 @@ public class BattleEventListener {
 		if(event.entity == event.source.getEntity())
 			return;
 		
-		System.out.println(event.source.getEntity().getEntityName() + "(" + event.source.getEntity().entityId
-				+ ") hit " + event.entity.getEntityName() + "(" + event.entity.entityId + ").");
-		System.out.println("Battle Attacker is currently " + (ModMain.bss.attackingEntity == null ? "null" : ModMain.bss.attackingEntity.getEntityName()));
+		String sName = null;
+		String name = null;
+		
+		if((sName = EntityList.getEntityString(event.source.getEntity())) == null)
+			sName = ((EntityPlayer)event.source.getEntity()).getDisplayName();
+
+		if((name = EntityList.getEntityString(event.entity)) == null)
+			name = ((EntityPlayer)event.entity).getDisplayName();
+		
+		System.out.println(sName + "(" + event.source.getEntity().func_145782_y()
+				+ ") hit " + name + "(" + event.entity.func_145782_y() + ").");
+		
+		if(ModMain.bss.attackingEntity == null)
+			name = "null";
+		else
+		{
+			if((name = EntityList.getEntityString(ModMain.bss.attackingEntity)) == null)
+				name = ((EntityPlayer)ModMain.bss.attackingEntity).getDisplayName();
+		}
+		
+		System.out.println("Battle Attacker is currently " + name);
 
 		if(ModMain.bss.manageCombatants((EntityLivingBase)event.source.getEntity(), (EntityLivingBase)event.entity))
 			event.setCanceled(true);

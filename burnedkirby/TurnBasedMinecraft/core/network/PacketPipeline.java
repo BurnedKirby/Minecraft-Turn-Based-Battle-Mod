@@ -108,6 +108,15 @@ public class PacketPipeline extends
 	
 	public void initialize() {
 		this.channels = NetworkRegistry.INSTANCE.newChannel("BK_TBM_Channel", this);
+		
+		registerPacket(BattleCombatantPacket.class);
+		registerPacket(BattleCommandPacket.class);
+		registerPacket(BattleMessagePacket.class);
+		registerPacket(BattlePhaseEndedPacket.class);
+		registerPacket(BattleQueryPacket.class);
+		registerPacket(BattleStatusPacket.class);
+		registerPacket(CombatantHealthPacket.class);
+		registerPacket(InitiateBattlePacket.class);
 	}
 	
 	public void postInitialize() {
