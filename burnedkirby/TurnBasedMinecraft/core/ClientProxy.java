@@ -23,7 +23,7 @@ public class ClientProxy extends CommonProxy {
 	public void newGui(int battleID, CombatantInfo player)
 	{
 		bg = new BattleGui(battleID, player);
-		Minecraft.getMinecraft().displayGuiScreen(bg);
+		Minecraft.getMinecraft().func_147108_a(bg);
 	}
 	
 	@Override

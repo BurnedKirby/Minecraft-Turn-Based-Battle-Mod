@@ -1,23 +1,17 @@
 package burnedkirby.TurnBasedMinecraft.gui;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import burnedkirby.TurnBasedMinecraft.CombatantInfo;
-import burnedkirby.TurnBasedMinecraft.ModMain;
-import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
-import burnedkirby.TurnBasedMinecraft.core.ClientProxy;
-import burnedkirby.TurnBasedMinecraft.core.network.BattleCommandPacket;
-import burnedkirby.TurnBasedMinecraft.core.network.BattleQueryPacket;
-
-import cpw.mods.fml.common.network.PacketDispatcher;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.scoreboard.ScorePlayerTeam;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
+import burnedkirby.TurnBasedMinecraft.ModMain;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleCommandPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleQueryPacket;
 
 /**
  * Player/Client side GUIScreen that also manages the player side of the Battle.
@@ -69,7 +63,7 @@ public class BattleGui extends GuiScreen {
 		info[1] = "";
 		getMenu(-2);
 		updatingCombatants = false;
-		PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 0).makePacket());
+		ModMain.pp.sendToServer(new BattleQueryPacket(battleID,(short) 0));
 		turnChoiceSent = false;
 		ModMain.proxy.playBattleMusic();
 	}
@@ -82,7 +76,7 @@ public class BattleGui extends GuiScreen {
 		{
 			combatants.clear();
 			updatingCombatants = true;
-			PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 1).makePacket());
+			ModMain.pp.sendToServer(new BattleQueryPacket(battleID,(short) 1));
 		}
 		update(playerPhase, turnChoiceReceived);
 	}
@@ -95,7 +89,7 @@ public class BattleGui extends GuiScreen {
 			if(combatants.size() == serverBattleSize)
 			{
 				updatingCombatants = false;
-				PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 0).makePacket());
+				ModMain.pp.sendToServer(new BattleQueryPacket(battleID,(short) 0));
 			}
 		}
 	}
@@ -143,17 +137,17 @@ public class BattleGui extends GuiScreen {
 	 */
 	@Override
 	public void drawScreen(int par1, int par2, float par3) {
-		drawRect(0, 0, width, height*5/6, 0xa0000000 | bgColor);
-		//drawRect(0, height*6/10, width, height*5/6, 0x70000000 | bgColor);
+		//drawRect(0, 0, width, height*5/6, 0xa0000000 | bgColor);
+		drawRect(0, 0, field_146294_l, field_146295_m, 0xa0000000 | bgColor);
 		
 		drawCombatants();
 
 		super.drawScreen(par1, par2, par3);
 		
 		if(info[0] != "")
-			Minecraft.getMinecraft().fontRenderer.drawString(info[0], width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[0])/2, height - 90, 0xffffffff);
+			Minecraft.getMinecraft().fontRenderer.drawString(info[0], field_146294_l/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[0])/2, field_146295_m - 90, 0xffffffff);
 		if(info[1] != "")
-			Minecraft.getMinecraft().fontRenderer.drawString(info[1], width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[1])/2, height - 80, 0xffffffff);
+			Minecraft.getMinecraft().fontRenderer.drawString(info[1], field_146294_l/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[1])/2, field_146295_m - 80, 0xffffffff);
 		
 		if(!turnChoiceSent)
 		{
@@ -167,13 +161,13 @@ public class BattleGui extends GuiScreen {
 			
 			String timerString = "Time left: " + formatString + (timer / 2);
 			
-			Minecraft.getMinecraft().fontRenderer.drawString(timerString, width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(timerString)/2, 10, 0xffffffff);
+			Minecraft.getMinecraft().fontRenderer.drawString(timerString, field_146294_l/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(timerString)/2, 10, 0xffffffff);
 		}
 		
 		updateTick--;
 		if(updateTick==0)
 		{
-			PacketDispatcher.sendPacketToServer(new BattleQueryPacket(battleID,(short) 0).makePacket());
+			ModMain.pp.sendToServer(new BattleQueryPacket(battleID,(short) 0));
 			updateTick = updateWaitTime;
 		}
 	}
@@ -183,19 +177,19 @@ public class BattleGui extends GuiScreen {
 	 */
 	public void drawCombatants()
 	{
-		int x, y1 = height/5, y2 = height/5;
+		int x, y1 = field_146295_m/5, y2 = field_146295_m/5;
 		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.isSideOne)
 			{
 				y1 += nameHeightInterval;
-				x = width/8;
+				x = field_146294_l/8;
 				drawCombatant(combatant,x,y1,0xFFFFFFFF);
 			}
 			else
 			{
 				y2 += nameHeightInterval;
-				x = width * 7 / 8;
+				x = field_146294_l * 7 / 8;
 				drawCombatant(combatant,x,y2,0xFFFFFFFF);
 			}
 		}
@@ -220,7 +214,8 @@ public class BattleGui extends GuiScreen {
 		{
 			if(!combatantButtonPopulated)
 			{
-				buttonList.add(new IDSelectionButton(counterMenu ? 8 : 5, combatant.id, x - nameLength/2, y, nameLength + 2, 8, name));
+				field_146292_n.add(new IDSelectionButton(counterMenu ? 8 : 5, combatant.id, x - nameLength/2, y, nameLength + 2, 8, name));
+				//buttonList.add(new IDSelectionButton(counterMenu ? 8 : 5, combatant.id, x - nameLength/2, y, nameLength + 2, 8, name));
 			}
 		}
 		else
@@ -275,7 +270,7 @@ public class BattleGui extends GuiScreen {
 	 * @param menu The type of menu to display.
 	 */
 	public void getMenu(int menu) {
-		buttonList.clear();
+		field_146292_n.clear();
 		info[0] = "";
 		info[1] = "";
 		currentMenu = menu;
@@ -288,16 +283,16 @@ public class BattleGui extends GuiScreen {
 			break;
 		case 0: //Main menu
 			info[0] = "What will you do?";
-			buttonList.add(new GuiButton(1, width*2/6 - 40, height - 40, 80, 20, "Fight"));
-			buttonList.add(new GuiButton(2, width*4/6 - 40, height - 40, 80, 20, "Flee"));
+			field_146292_n.add(new GuiButton(1, field_146294_l*2/6 - 40, field_146295_m - 40, 80, 20, "Fight"));
+			field_146292_n.add(new GuiButton(2, field_146294_l*4/6 - 40, field_146295_m - 40, 80, 20, "Flee"));
 			break;
 		case 1: //Fight menu
 			info[0] = "What will you do?";
-			buttonList.add(new GuiButton(3, width/6 - 40, height - 72, 80, 20, "Attack"));
+			field_146292_n.add(new GuiButton(3, field_146294_l/6 - 40, field_146295_m - 72, 80, 20, "Attack"));
 			//controlList.add(new GuiButton(5, width*2/5 - 40, height - 72, 80, 20, "Use Item"));
-			buttonList.add(new GuiButton(7, width*2/5 - 40, height - 72, 80, 20, "Dodge/Counter"));
-			buttonList.add(new GuiButton(4, width*3/5 - 40, height - 72, 80, 20, "Change Weapon"));
-			buttonList.add(new GuiButton(0, width*5/6 - 40, height - 72, 80, 20, "Cancel"));
+			field_146292_n.add(new GuiButton(7, field_146294_l*2/5 - 40, field_146295_m - 72, 80, 20, "Dodge/Counter"));
+			field_146292_n.add(new GuiButton(4, field_146294_l*3/5 - 40, field_146295_m - 72, 80, 20, "Change Weapon"));
+			field_146292_n.add(new GuiButton(0, field_146294_l*5/6 - 40, field_146295_m - 72, 80, 20, "Cancel"));
 			break;
 		case 2: //Flee status
 			info[0] = "You attempt to flee!";
@@ -310,9 +305,9 @@ public class BattleGui extends GuiScreen {
 			info[0] = "Pick your weapon!";
 			for(short i=0; i < 9; i++)
 			{
-				buttonList.add(new ItemSelectionButton(6, width/2 - 88 + i * 20, height - 19, 16, 16, "", i));
+				field_146292_n.add(new ItemSelectionButton(6, field_146294_l/2 - 88 + i * 20, field_146295_m - 19, 16, 16, "", i));
 			}
-			buttonList.add(new GuiButton(0, width/2 - 40, height - 40, 80, 20, "Cancel"));
+			field_146292_n.add(new GuiButton(0, field_146294_l/2 - 40, field_146295_m - 40, 80, 20, "Cancel"));
 			break;
 		case 5: //Attack Phase (Handled by actionPerformed method)
 			info[0] = "You attack!";
@@ -338,15 +333,15 @@ public class BattleGui extends GuiScreen {
 	 * Calls getMenu() with the button ID.
 	 */
 	@Override
-	protected void actionPerformed(GuiButton button) {
+	protected void func_146284_a(GuiButton button) {//actionPerformed(GuiButton button) {
 		combatantButton = false;
 		
-		switch(button.id)
+		switch(button.field_146127_k)//id)
 		{
 		case 2: //flee
 			player.type = Type.FLEE;
 			player.target = player.id;
-			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
+			ModMain.pp.sendToServer(new BattleCommandPacket(battleID, player));
 			turnChoiceSent = true;
 			break;
 		case 3: //attack menu
@@ -357,7 +352,7 @@ public class BattleGui extends GuiScreen {
 		case 5: //attack
 			player.target = ((IDSelectionButton)button).entityID;
 			player.type = Type.ATTACK;
-			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
+			ModMain.pp.sendToServer(new BattleCommandPacket(battleID, player));
 			turnChoiceSent = true;
 			break;
 		case 6: //change weapon
@@ -366,7 +361,7 @@ public class BattleGui extends GuiScreen {
 			
 			player.type = Type.CHANGE_WEAPON;
 			player.target = player.id;
-			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
+			ModMain.pp.sendToServer(new BattleCommandPacket(battleID, player));
 			turnChoiceSent = true;
 			break;
 		case 7: //dodge/counter menu
@@ -377,13 +372,13 @@ public class BattleGui extends GuiScreen {
 		case 8: //dodge/counter
 			player.target = ((IDSelectionButton)button).entityID;
 			player.type = Type.DODGE_COUNTER;
-			PacketDispatcher.sendPacketToServer(new BattleCommandPacket(battleID, player).makePacket());
+			ModMain.pp.sendToServer(new BattleCommandPacket(battleID, player));
 			turnChoiceSent = true;
 			break;
 		default: break;
 		}
 		
-		getMenu(button.id);
+		getMenu(button.field_146127_k);
 	}
 	
 	/**
@@ -391,7 +386,7 @@ public class BattleGui extends GuiScreen {
 	 * cached information on combatants.
 	 */
 	@Override
-	public void onGuiClosed() {
+	public void func_146281_b() {//onGuiClosed() {
 		ModMain.proxy.setGui(null);
 		ModMain.proxy.stopBattleMusic();
 	}

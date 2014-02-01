@@ -1,5 +1,6 @@
 package burnedkirby.TurnBasedMinecraft;
 
+import burnedkirby.TurnBasedMinecraft.core.Utility;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -17,6 +18,7 @@ public class BattleEventListener {
 	@SubscribeEvent
 	public void entityAttacked(LivingAttackEvent event)
 	{
+		Utility.log("Attack event occurred.");
 		if(event.entity.worldObj.isRemote)
 			return;
 		

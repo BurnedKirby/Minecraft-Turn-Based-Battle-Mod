@@ -81,7 +81,7 @@ public class BattleMusicManager {
 	
 	public void playRandomBattleMusic()
 	{
-		if(musicFiles != null && Minecraft.getMinecraft().gameSettings.musicVolume != 0.0f)
+		/*if(musicFiles != null && Minecraft.getMinecraft().gameSettings.musicVolume != 0.0f)
 		{
 			SoundManager mcSoundManager = Minecraft.getMinecraft().sndManager;
 			mcSoundManager.sndSystem.stop("BgMusic");
@@ -95,7 +95,7 @@ public class BattleMusicManager {
 			mcSoundManager.sndSystem.play("BgMusic");
 			
 			battleMusicPlaying = true;
-		}
+		}*/
 	}
 	
 	public void stopBattleMusic()
@@ -116,7 +116,7 @@ public class BattleMusicManager {
 
 		@Override
 		public void run() {
-			float currentVol = Minecraft.getMinecraft().sndManager.sndSystem.getVolume("BgMusic");
+			/*float currentVol = Minecraft.getMinecraft().sndManager.sndSystem.getVolume("BgMusic");
 			float interval = currentVol / 10.0f;
 			for(int i=1; i <= 10; i++)
 			{
@@ -127,7 +127,7 @@ public class BattleMusicManager {
 			}
 			Minecraft.getMinecraft().sndManager.sndSystem.stop("BgMusic");
 			faderThread = null;
-			battleMusicPlaying = false;
+			battleMusicPlaying = false;*/
 		}
 		
 	}
