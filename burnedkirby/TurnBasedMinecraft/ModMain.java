@@ -43,8 +43,7 @@ public class ModMain {
 	
 	@EventHandler
 	public void initialize(FMLInitializationEvent event){
-		FMLCommonHandler.instance().bus().register(new BattleEventListener());
-		//MinecraftForge.EVENT_BUS.register(new BattleEventListener()); deprecated
+		MinecraftForge.EVENT_BUS.register(new BattleEventListener());
 		
 		proxy.initializeSettings();
 		proxy.initializeMusicManager();

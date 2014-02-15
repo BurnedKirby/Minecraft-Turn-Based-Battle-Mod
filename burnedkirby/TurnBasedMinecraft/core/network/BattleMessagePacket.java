@@ -60,7 +60,7 @@ public class BattleMessagePacket extends AbstractPacket {
 
 	@Override
 	public void handleClientSide(EntityPlayer player) {
-		player.func_146105_b(new ChatComponentText(message));
+		player.addChatComponentMessage(new ChatComponentText(message));
 	}
 
 	@Override

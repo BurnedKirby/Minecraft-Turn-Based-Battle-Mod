@@ -37,8 +37,8 @@ public class BattleEventListener {
 		if((name = EntityList.getEntityString(event.entity)) == null)
 			name = ((EntityPlayer)event.entity).getDisplayName();
 		
-		System.out.println(sName + "(" + event.source.getEntity().func_145782_y()
-				+ ") hit " + name + "(" + event.entity.func_145782_y() + ").");
+		System.out.println(sName + "(" + event.source.getEntity().getEntityId()
+				+ ") hit " + name + "(" + event.entity.getEntityId() + ").");
 		
 		if(ModMain.bss.attackingEntity == null)
 			name = "null";

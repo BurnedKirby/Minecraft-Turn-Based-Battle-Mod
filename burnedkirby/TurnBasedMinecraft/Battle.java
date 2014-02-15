@@ -345,7 +345,7 @@ public class Battle{
 					else
 						targetEntity = null;
 
-					if(targetEntity == null || !targetEntity.isEntityAlive() || !combatants.containsKey(targetEntity.func_145782_y()))
+					if(targetEntity == null || !targetEntity.isEntityAlive() || !combatants.containsKey(targetEntity.getEntityId()))
 						continue;
 					
 					if(missCheck(combatant, combatants.get(combatant.target)))
@@ -388,7 +388,7 @@ public class Battle{
 				}
 				else if(combatantEntity instanceof EntityMob || combatantEntity instanceof EntityGolem)
 				{
-					if(((EntityCreature)combatantEntity).getEntityToAttack() instanceof EntityLivingBase && combatants.containsKey(((EntityMob) combatantEntity).getEntityToAttack().func_145782_y()))
+					if(((EntityCreature)combatantEntity).getEntityToAttack() instanceof EntityLivingBase && combatants.containsKey(((EntityMob) combatantEntity).getEntityToAttack().getEntityId()))
 						targetEntity = (EntityLivingBase) ((EntityCreature)combatantEntity).getEntityToAttack();
 					else
 						targetEntity = null;
@@ -407,7 +407,7 @@ public class Battle{
 						for(; j<rand; k++)
 						{
 							if(combatantEntity instanceof EntityGolem && !combatantArray[k % combatantArray.length].isPlayer
-									&& combatantArray[k % combatantArray.length].id != combatantEntity.func_145782_y() && nonPlayersExist)
+									&& combatantArray[k % combatantArray.length].id != combatantEntity.getEntityId() && nonPlayersExist)
 							{
 								j++;
 								picked = k % combatantArray.length;
@@ -435,7 +435,7 @@ public class Battle{
 						targetEntity = combatantArray[picked].entityReference;
 					}
 					
-					if(missCheck(combatant, combatants.get(targetEntity.func_145782_y())))
+					if(missCheck(combatant, combatants.get(targetEntity.getEntityId())))
 					{
 						name = EntityList.getEntityString(combatantEntity);
 						
@@ -468,7 +468,7 @@ public class Battle{
 				else if(combatantEntity instanceof EntitySlime)
 				{
 					targetEntity = ((EntitySlime)combatantEntity).worldObj.getClosestVulnerablePlayerToEntity(combatantEntity, 16.0);
-					if(targetEntity == null || !combatants.containsKey(targetEntity.func_145782_y()))
+					if(targetEntity == null || !combatants.containsKey(targetEntity.getEntityId()))
 					{
 
 						rand = ModMain.bss.random.nextInt(combatants.size()) + combatants.size();
@@ -491,7 +491,7 @@ public class Battle{
 						targetEntity = combatantArray[picked].entityReference;
 					}
 					
-					if(missCheck(combatant, combatants.get(targetEntity.func_145782_y())))
+					if(missCheck(combatant, combatants.get(targetEntity.getEntityId())))
 					{
 						name = EntityList.getEntityString(combatantEntity);
 						
@@ -524,7 +524,7 @@ public class Battle{
 				else
 					System.out.println("Else triggered");//TODO implement non-mob entities or don't enter battle with them???
 				
-				if(targetEntity.isEntityAlive() && counterCheck(combatants.get(targetEntity.func_145782_y())))
+				if(targetEntity.isEntityAlive() && counterCheck(combatants.get(targetEntity.getEntityId())))
 				{
 					notifyPlayersWithMessage(targetName + " countered " + name + "!");
 					targetEntity.hurtResistantTime = 0;

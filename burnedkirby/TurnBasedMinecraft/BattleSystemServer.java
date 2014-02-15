@@ -129,7 +129,7 @@ public class BattleSystemServer {
 				|| (entityAttacker instanceof EntityPlayer && ((EntityPlayer)entityAttacker).capabilities.isCreativeMode)
 				|| (entityAttacked instanceof EntityPlayer && ((EntityPlayer)entityAttacked).capabilities.isCreativeMode))
 			return false;
-		else if(exitedBattle.contains(entityAttacker.func_145782_y()) || exitedBattle.contains(entityAttacked.func_145782_y()))
+		else if(exitedBattle.contains(entityAttacker.getEntityId()) || exitedBattle.contains(entityAttacked.getEntityId()))
 		{
 			System.out.println("Canceled attack due to exitedbattle containing entity.");
 			return true;
@@ -137,8 +137,8 @@ public class BattleSystemServer {
 		
 		boolean returnValue = false;
 		short inBattle = 0x0;
-		inBattle |= isInBattle(entityAttacker.func_145782_y()) ? 0x1 : 0x0;
-		inBattle |= isInBattle(entityAttacked.func_145782_y()) ? 0x2 : 0x0;
+		inBattle |= isInBattle(entityAttacker.getEntityId()) ? 0x1 : 0x0;
+		inBattle |= isInBattle(entityAttacked.getEntityId()) ? 0x2 : 0x0;
 		
 		List<Integer> recentlyAdded;
 		synchronized(justEntered)
@@ -169,8 +169,8 @@ public class BattleSystemServer {
 			if((attackedName = EntityList.getEntityString(entityAttacked)) == null)
 				attackedName = ((EntityPlayer)entityAttacked).getDisplayName();
 			
-			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.func_145782_y(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.func_145782_y()));
-			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.func_145782_y(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacked.getAITarget() != null ? entityAttacked.getAITarget().func_145782_y() : 0));
+			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.getEntityId(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.getEntityId()));
+			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.getEntityId(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacked.getAITarget() != null ? entityAttacked.getAITarget().getEntityId() : 0));
 			synchronized(battles)
 			{
 				battles.put(battleIDCounter,new Battle(battleIDCounter, combatants));
@@ -179,8 +179,8 @@ public class BattleSystemServer {
 			battleIDCounter++;
 			returnValue = false;
 			justAdded = new LinkedList<Integer>();
-			justAdded.add(entityAttacker.func_145782_y());
-			justAdded.add(entityAttacked.func_145782_y());
+			justAdded.add(entityAttacker.getEntityId());
+			justAdded.add(entityAttacked.getEntityId());
 			synchronized(justEntered)
 			{
 				justEntered.push(justAdded);
@@ -199,18 +199,18 @@ public class BattleSystemServer {
 			synchronized(battles)
 			{
 				Battle battleToJoin;
-				boolean isSideOne = !((battleToJoin = findBattleByEntityID(inBattleCombatant.func_145782_y())).getCombatant(inBattleCombatant.func_145782_y()).isSideOne);
+				boolean isSideOne = !((battleToJoin = findBattleByEntityID(inBattleCombatant.getEntityId())).getCombatant(inBattleCombatant.getEntityId()).isSideOne);
 				
 				String newName = null;
 				
 				if((newName = EntityList.getEntityString(newCombatant)) == null)
 					newName = ((EntityPlayer)newCombatant).getDisplayName();
 				
-				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.func_145782_y(), newCombatant, isSideOne, newName, false, Type.DO_NOTHING, inBattleCombatant.func_145782_y()));
+				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.getEntityId(), newCombatant, isSideOne, newName, false, Type.DO_NOTHING, inBattleCombatant.getEntityId()));
 			}
 			returnValue = true;
 			justAdded = new LinkedList<Integer>();
-			justAdded.add(newCombatant.func_145782_y());
+			justAdded.add(newCombatant.getEntityId());
 			synchronized(justEntered)
 			{
 				justEntered.push(justAdded);
@@ -231,7 +231,7 @@ public class BattleSystemServer {
 			{
 				for(int i : recentlyAdded)
 				{
-					if(i == entityAttacker.func_145782_y() || i == entityAttacked.func_145782_y())
+					if(i == entityAttacker.getEntityId() || i == entityAttacked.getEntityId())
 					{
 						returnValue = false;
 						break;

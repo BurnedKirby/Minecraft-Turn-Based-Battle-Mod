@@ -32,7 +32,7 @@ public abstract class AbstractPacket {
 	protected String decodeUTF(ByteBuf buffer) throws UnsupportedEncodingException
 	{
 		int length = buffer.readInt();
-		byte[] data = null;
+		byte[] data = new byte[length];
 		buffer.readBytes(length).readBytes(data);
 		return new String(data, "UTF-8");
 	}
