@@ -18,7 +18,6 @@ public class BattleEventListener {
 	@SubscribeEvent
 	public void entityAttacked(LivingAttackEvent event)
 	{
-		Utility.log("Attack event occurred.");
 		if(event.entity.worldObj.isRemote)
 			return;
 		
@@ -37,7 +36,7 @@ public class BattleEventListener {
 		if((name = EntityList.getEntityString(event.entity)) == null)
 			name = ((EntityPlayer)event.entity).getDisplayName();
 		
-		System.out.println(sName + "(" + event.source.getEntity().getEntityId()
+		Utility.log(sName + "(" + event.source.getEntity().getEntityId()
 				+ ") hit " + name + "(" + event.entity.getEntityId() + ").");
 		
 		if(ModMain.bss.attackingEntity == null)
@@ -48,7 +47,7 @@ public class BattleEventListener {
 				name = ((EntityPlayer)ModMain.bss.attackingEntity).getDisplayName();
 		}
 		
-		System.out.println("Battle Attacker is currently " + name);
+		Utility.log("Battle Attacker is currently " + name);
 
 		if(ModMain.bss.manageCombatants((EntityLivingBase)event.source.getEntity(), (EntityLivingBase)event.entity))
 			event.setCanceled(true);
