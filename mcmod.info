@@ -1,21 +1,11 @@
-{
-  "modinfoversion": 2,
-  "modlist": [{
+[{
     "modid": "mod_BurnedKirbyTurnBasedMinecraft",
     "name": "BurnedKirby's Turn-Based Minecraft",
     "description": "Puts RPG style turn-based combat into Minecraft!",
     "version": "0.3.0",
-    "mcversion": "1.7.2",
+    "mcversion": "${minecraft_version}-${forge_version}",
     "url": "https://github.com/BurnedKirby/Minecraft-Turn-Based-Battle-Mod",
-    "updateUrl": "",
     "authors": [ "BurnedKirby" ],
     "credits": "Created by BurnedKirby",
-    "logoFile": "",
-    "screenshots": [],
-    "parent":"",
-    "requiredMods": [ "Forge" ],
-    "dependancies": [],
-    "dependants": [],
-    "useDependencyInformation": "true"
-    }]
-}
+    "dependencies": []
+}]
