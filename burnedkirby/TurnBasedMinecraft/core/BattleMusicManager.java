@@ -14,6 +14,7 @@ import burnedkirby.TurnBasedMinecraft.ModMain;
 public class BattleMusicManager {
 	
 	protected static final String battleMusicFolder = ModMain.modFolder + "/BattleMusic";
+	protected static final String sillyMusicFolder = ModMain.modFolder + "/SillyBattleMusic";
 
 	protected Random random;
 	
@@ -32,18 +33,13 @@ public class BattleMusicManager {
 		
 		File musicFolder = new File(battleMusicFolder);
 		
-		File sillyMusicFolder = new File(battleMusicFolder + "/silly");
+		File sillyMusicFolder = new File(this.sillyMusicFolder);
 
 		if(!musicFolder.exists())
 		{
 			if(!musicFolder.mkdir())
 			{
 				new IOException("Failed to create battle music directory.").printStackTrace();
-				return;
-			}
-			if(!sillyMusicFolder.mkdir())
-			{
-				new IOException("Failed to create silly battle music directory.").printStackTrace();
 				return;
 			}
 			try {
@@ -54,6 +50,15 @@ public class BattleMusicManager {
 						"\n\nIf there are no music files here, then the mod will not halt any music playing by Minecraft.");
 				readme.close();
 			} catch(IOException e) {}
+		}
+		
+		if(!sillyMusicFolder.exists())
+		{
+			if(!sillyMusicFolder.mkdir())
+			{
+				new IOException("Failed to create silly battle music directory.").printStackTrace();
+				return;
+			}
 		}
 		
 		File[] musicFiles = musicFolder.listFiles(new FilenameFilter() {
@@ -136,6 +141,7 @@ public class BattleMusicManager {
 	
 	public void playRandomSillyMusic()
 	{
+		boolean failed = true;
 		synchronized(this)
 		{
 			if(sillyFiles != null && !battleMusicPlaying)
@@ -154,8 +160,12 @@ public class BattleMusicManager {
 				}
 				
 				battleMusicPlaying = true;
+				failed = false;
 			}
 		}
+		
+		if(failed)
+			playRandomBattleMusic();
 	}
 	
 	public void stopBattleMusic()

@@ -17,11 +17,13 @@ public class InitiateBattlePacket extends AbstractPacket {
 	
 	int battleID;
 	CombatantInfo player;
+	boolean silly;
 	
-	public InitiateBattlePacket(int battleID, CombatantInfo player)
+	public InitiateBattlePacket(int battleID, CombatantInfo player, boolean silly)
 	{
 		this.battleID = battleID;
 		this.player = player;
+		this.silly = silly;
 	}
 	
 	public InitiateBattlePacket() {
@@ -34,6 +36,7 @@ public class InitiateBattlePacket extends AbstractPacket {
 		buffer.writeBoolean(player.isPlayer);
 		buffer.writeInt(player.id);
 		buffer.writeBoolean(player.isSideOne);
+		buffer.writeBoolean(silly);
 		try {
 			encodeUTF(player.name, buffer);
 		} catch (UnsupportedEncodingException e) {
@@ -47,6 +50,7 @@ public class InitiateBattlePacket extends AbstractPacket {
 		player.isPlayer = buffer.readBoolean();
 		player.id = buffer.readInt();
 		player.isSideOne = buffer.readBoolean();
+		silly = buffer.readBoolean();
 		try {
 			player.name = decodeUTF(buffer);
 		} catch (UnsupportedEncodingException e) {
@@ -56,7 +60,7 @@ public class InitiateBattlePacket extends AbstractPacket {
 
 	@Override
 	public void handleClientSide(EntityPlayer player) {
-		ModMain.proxy.newGui(battleID, this.player);
+		ModMain.proxy.newGui(battleID, this.player, silly);
 	}
 
 	@Override

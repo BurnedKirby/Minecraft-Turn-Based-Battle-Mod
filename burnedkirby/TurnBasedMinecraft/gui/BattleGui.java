@@ -43,11 +43,14 @@ public class BattleGui extends GuiScreen {
 	
 	private short timer;
 	
-	public BattleGui(int battleID, CombatantInfo player)
+	private boolean silly;
+	
+	public BattleGui(int battleID, CombatantInfo player, boolean silly)
 	{
 		this.battleID = battleID;
 		this.player = player;
 		player.ready = true;
+		this.silly = silly;
 		
 		combatants = new TreeMap<Integer,CombatantInfo>();
 		updateTick = updateWaitTime;
@@ -65,7 +68,14 @@ public class BattleGui extends GuiScreen {
 		updatingCombatants = false;
 		ModMain.pp.sendToServer(new BattleQueryPacket(battleID,(short) 0));
 		turnChoiceSent = false;
-		ModMain.proxy.playBattleMusic();
+		if(silly)
+		{
+			ModMain.proxy.playSillyMusic();
+		}
+		else
+		{
+			ModMain.proxy.playBattleMusic();
+		}
 	}
 	
 	public void checkBattleInfo(boolean forceUpdate, int battleSize, boolean playerPhase, boolean turnChoiceReceived, short timer)

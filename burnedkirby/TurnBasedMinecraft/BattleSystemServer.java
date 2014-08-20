@@ -5,8 +5,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
@@ -52,6 +54,7 @@ public class BattleSystemServer {
 	 */
 	
 	public Map<String, Boolean> ignoreSystemEntityMap;
+	
 	private Map<Integer,Battle> battles;
 	private Stack<List<Integer>> justEntered;
 	protected CombatantInfoSet inBattle;
@@ -103,6 +106,7 @@ public class BattleSystemServer {
 		ignoreSystemEntityMap.put("Zombie", false);
 		ignoreSystemEntityMap.put("Dragon", true);
 		ignoreSystemEntityMap.put("WitherBoss", true);
+		
 		
 		battles = new TreeMap<Integer,Battle>();
 		inBattle = new CombatantInfoSet();
@@ -158,6 +162,8 @@ public class BattleSystemServer {
 				break;
 			}
 			
+			boolean silly = isPassive(entityAttacker) || isPassive(entityAttacked);
+			
 			Stack<CombatantInfo> combatants = new Stack<CombatantInfo>();
 
 			String attackerName = null;
@@ -173,7 +179,7 @@ public class BattleSystemServer {
 			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.getEntityId(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacked.getAITarget() != null ? entityAttacked.getAITarget().getEntityId() : 0));
 			synchronized(battles)
 			{
-				battles.put(battleIDCounter,new Battle(battleIDCounter, combatants));
+				battles.put(battleIDCounter,new Battle(battleIDCounter, combatants, silly));
 			}
 			System.out.println("New battle " + battleIDCounter + " created.");
 			battleIDCounter++;
@@ -385,6 +391,35 @@ public class BattleSystemServer {
 			}
 		}
 		
+	}
+	
+	public boolean isPassive(EntityLivingBase entity)
+	{
+		if(entity instanceof EntityBat)
+			return true;
+		else if(entity instanceof EntityChicken)
+			return true;
+		else if(entity instanceof EntityCow)
+			return true;
+		else if(entity instanceof EntityHorse)
+			return true;
+		else if(entity instanceof EntityMooshroom)
+			return true;
+		else if(entity instanceof EntityOcelot)
+			return true;
+		else if(entity instanceof EntityPig)
+			return true;
+		else if(entity instanceof EntitySheep)
+			return true;
+		else if(entity instanceof EntitySquid)
+			return true;
+		else if(entity instanceof EntityVillager)
+			return true;
+		else if(entity instanceof EntitySlime)
+			return true;
+		
+		return false;
+			
 	}
 	
 	public boolean ignoreSystem(EntityLivingBase entity)

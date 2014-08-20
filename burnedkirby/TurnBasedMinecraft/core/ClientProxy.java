@@ -20,9 +20,9 @@ public class ClientProxy extends CommonProxy {
 	}
 
 	@Override
-	public void newGui(int battleID, CombatantInfo player)
+	public void newGui(int battleID, CombatantInfo player, boolean silly)
 	{
-		bg = new BattleGui(battleID, player);
+		bg = new BattleGui(battleID, player, silly);
 		Minecraft.getMinecraft().displayGuiScreen(bg);
 	}
 	

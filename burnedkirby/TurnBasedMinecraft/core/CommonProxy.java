@@ -53,7 +53,7 @@ public class CommonProxy{
 	{
 	}
 
-	public void newGui(int battleID, CombatantInfo player) {
+	public void newGui(int battleID, CombatantInfo player, boolean silly) {
 	}
 	
 	public Object getGui()

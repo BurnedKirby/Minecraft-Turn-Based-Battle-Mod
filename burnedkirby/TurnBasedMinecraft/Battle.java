@@ -18,6 +18,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
+import burnedkirby.TurnBasedMinecraft.core.Utility;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleCombatantPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleMessagePacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
@@ -45,26 +46,30 @@ public class Battle{
 	
 	private final short turnTickTime = 30;
 	
+	private boolean silly;
+	
 	public Battle(int id)
 	{
 		battleID = id;
 	}
 	
-	public Battle(int id, Stack<CombatantInfo> newCombatants)
+	public Battle(int id, Stack<CombatantInfo> newCombatants, boolean silly)
 	{
 		battleID = id;
 		combatants = new TreeMap<Integer,CombatantInfo>();
 		newCombatantQueue = new Stack<CombatantInfo>();
 //		removeCombatantQueue = new Stack<CombatantInfo>();
 		
+		this.silly = silly;
+		
 		CombatantInfo combatant;
 		while(!newCombatants.isEmpty())
 		{
 			combatant = newCombatants.pop();
-			System.out.println("Initializing battle with combatant " + combatant.name);
+			Utility.log("Initializing battle with combatant " + combatant.name);
 			if(combatant.isPlayer)
 			{
-				ModMain.pp.sendTo(new InitiateBattlePacket(battleID,combatant), (EntityPlayerMP)combatant.entityReference);
+				ModMain.pp.sendTo(new InitiateBattlePacket(battleID,combatant, silly), (EntityPlayerMP)combatant.entityReference);
 				combatant.setTurnTickTimer(turnTickTime);
 			}
 			else if(isFightingEntity(combatant.entityReference))
@@ -99,7 +104,7 @@ public class Battle{
 
 			if(newCombatant.isPlayer)
 			{
-				ModMain.pp.sendTo(new InitiateBattlePacket(battleID,newCombatant), (EntityPlayerMP)newCombatant.entityReference);
+				ModMain.pp.sendTo(new InitiateBattlePacket(battleID,newCombatant,silly), (EntityPlayerMP)newCombatant.entityReference);
 				newCombatant.setTurnTickTimer(turnTickTime);
 			}
 			
@@ -144,7 +149,7 @@ public class Battle{
 	{
 		if(this.status != BattleStatus.PLAYER_PHASE || !combatants.containsValue(combatant))
 		{
-			System.out.println("WARNING: Battle " + battleID + " failed updatePlayerStatus."); //TODO debug
+			Utility.log("WARNING: Battle " + battleID + " failed updatePlayerStatus."); //TODO debug
 			return;
 		}
 		
@@ -266,7 +271,7 @@ public class Battle{
 		if(getPlayersReady())
 		{
 			status = BattleStatus.CALCULATIONS_PHASE;
-			System.out.println("PlayerPhase ended.");
+			Utility.log("PlayerPhase ended.");
 		}
 		
 //		phaseInProgress = false;
@@ -393,11 +398,12 @@ public class Battle{
 					else
 						targetEntity = null;
 					
-
-					if((targetName = EntityList.getEntityString(targetEntity)) == null)
+					if(targetEntity == null)
+						targetName = "NULL (THIS SHOULD NEVER HAPPEN!?!)";
+					else if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						targetName = ((EntityPlayer)targetEntity).getDisplayName();
 					
-					System.out.println(EntityList.getEntityString(combatantEntity) + " targeting " + (targetEntity != null ? targetName : "null"));
+					Utility.log(EntityList.getEntityString(combatantEntity) + " targeting " + (targetEntity != null ? targetName : "null"));
 					
 					if(targetEntity == null)
 					{
@@ -522,7 +528,7 @@ public class Battle{
 					}
 				}
 				else
-					System.out.println("Else triggered");//TODO implement non-mob entities or don't enter battle with them???
+					Utility.log("Else triggered");//TODO implement non-mob entities or don't enter battle with them???
 				
 				if(targetEntity.isEntityAlive() && counterCheck(combatants.get(targetEntity.getEntityId())))
 				{
@@ -537,7 +543,7 @@ public class Battle{
 		}
 		
 		status = BattleStatus.END_CHECK_PHASE;
-		System.out.println("Calculations phase ended.");
+		Utility.log("Calculations phase ended.");
 		
 //		phaseInProgress = false;
 	}
@@ -559,7 +565,7 @@ public class Battle{
 			combatantRef = iter.next();
 			if(!combatantRef.entityReference.isEntityAlive())
 			{
-				System.out.println("Entity is dead, removing");
+				Utility.log("Entity is dead, removing");
 				if(combatantRef.isPlayer)
 					notifyPlayer(false, combatantRef, false);
 				else
@@ -606,7 +612,7 @@ public class Battle{
 //		notifyPlayersTurnEnded();
 		
 		status = BattleStatus.PLAYER_PHASE;
-		System.out.println("End phase ended.");
+		Utility.log("End phase ended.");
 
 		notifyPlayers(false);
 		
@@ -635,7 +641,7 @@ public class Battle{
 		if(sideOne == 0 || sideTwo == 0 || players == 0)
 		{
 			battleEnded = true;
-			System.out.println("Battle " + battleID + " ended.");
+			Utility.log("Battle " + battleID + " ended.");
 			synchronized(ModMain.bss.inBattle) {
 			synchronized(ModMain.bss.exitedBattle) {
 				for(CombatantInfo combatant : combatants.values())
@@ -749,7 +755,7 @@ public class Battle{
 		for(int i=0; i<combatantListCopy.length; i++)
 		{
 			combatantListCopy[i].setHealth(combatantListCopy[i].entityReference.getHealth());
-//			System.out.println("Possible health is " + combatantListCopy[i].entityReference.func_110143_aJ());
+//			Utility.log("Possible health is " + combatantListCopy[i].entityReference.func_110143_aJ());
 
 		}
 		
