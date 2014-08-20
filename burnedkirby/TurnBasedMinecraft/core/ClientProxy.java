@@ -51,6 +51,11 @@ public class ClientProxy extends CommonProxy {
 	}
 	
 	@Override
+	public void playSillyMusic() {
+		bmm.playRandomSillyMusic();
+	}
+	
+	@Override
 	public void stopBattleMusic() {
 		bmm.stopBattleMusic();
 	}
@@ -58,5 +63,10 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public void initializeSettings() {
 		super.initializeSettings();
+	}
+	
+	@Override
+	public void cleanup() {
+		bmm.destroy();
 	}
 }

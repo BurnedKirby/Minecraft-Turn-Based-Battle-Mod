@@ -70,6 +70,9 @@ public class CommonProxy{
 	public void playBattleMusic()
 	{}
 	
+	public void playSillyMusic()
+	{}
+	
 	public void stopBattleMusic()
 	{}
 	
@@ -316,5 +319,9 @@ public class CommonProxy{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void cleanup()
+	{
 	}
 }

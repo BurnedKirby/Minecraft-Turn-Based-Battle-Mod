@@ -18,6 +18,8 @@ import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 
 
 @Mod(modid=ModMain.modid,name="BurnedKirby's Turn-Based Minecraft",version=ModMain.versionNumber)
@@ -25,7 +27,7 @@ public class ModMain {
 	
 	public static final String modid = "mod_BurnedKirbyTurnBasedMinecraft";
 	
-	public static final String versionNumber = "0.3.0";
+	public static final String versionNumber = "0.3.1";
 	
 	@Instance("BurnedKirbyTurnBasedBattleSystem")
 	public static ModMain instance = new ModMain();
@@ -54,5 +56,10 @@ public class ModMain {
 	@EventHandler
 	public void initialize(FMLPostInitializationEvent event){
 		pp.postInitialize();
+	}
+	
+	@EventHandler
+	public void cleanup(FMLServerStoppingEvent event){
+		proxy.cleanup();
 	}
 }
