@@ -4,11 +4,11 @@ Minecraft-Turn-Based-Battle-Mod
 A mod for Minecraft (using Minecraft Forge) that employs a turn-based battle system.
 
 
-### Mod currently compiles on Minecraft Forge 1.7.2-10.12.0.1029
+### Mod currently compiles on Minecraft Forge 1.7.10-10.13.0.1180
 
 
 To use, check out the Downloads page on the wiki to get the latest compiled version of the mod as well as instructions.
-Alternatively, setup Minecraft Forge 1.7.2-10.12.0.1029 and place the "burnedkirby" folder in src for compiling.
+Alternatively, setup Minecraft Forge 1.7.10-10.13.0.1180 and place the "burnedkirby" folder in src for compiling.
 
 
 ### Notice: The mod will create a directory in the .minecraft folder.
@@ -22,7 +22,7 @@ You can change what mobs will enter battle by editing the XML settings file in t
 
 You can change the rates of things in battle such as evasion rate in the XML settings file as well.
 
-You can add music to the music folder but they must be wav's.  
+You can add music to the music folder but they must be wav's or mid's.  
 Silly battle music (in the silly folder) will play when attacking a passive mob.
 
 
