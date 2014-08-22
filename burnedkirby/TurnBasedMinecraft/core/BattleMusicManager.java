@@ -8,6 +8,8 @@ import java.net.MalformedURLException;
 import java.util.Random;
 import java.util.Vector;
 
+import org.apache.commons.io.FilenameUtils;
+
 import net.minecraft.client.Minecraft;
 import burnedkirby.TurnBasedMinecraft.ModMain;
 
@@ -25,8 +27,15 @@ public class BattleMusicManager {
 	
 	protected BattleMusicPlayer battleMusicPlayer = null;
 	
+	private boolean currentIsMidi = false;
+	
+	private File nextMusic = null;
+	private File nextSillyMusic = null;
+	
 	public BattleMusicManager()
 	{
+		random = new Random(System.currentTimeMillis());
+		
 		battleMusicPlaying = false;
 		
 		battleMusicPlayer = new BattleMusicPlayer();
@@ -68,8 +77,8 @@ public class BattleMusicManager {
 				int ext;
 				if((ext = name.lastIndexOf(".")) == -1)
 					return false;
-				String extension = name.substring(ext + 1);
-				if(extension.equals("ogg") || extension.equals("wav"))
+				String extension = name.substring(ext + 1).toLowerCase();
+				if(extension.equals("mid") || extension.equals("wav"))
 					return true;
 				return false;
 			}
@@ -82,8 +91,8 @@ public class BattleMusicManager {
 				int ext;
 				if((ext = name.lastIndexOf(".")) == -1)
 					return false;
-				String extension = name.substring(ext + 1);
-				if(extension.equals("ogg") || extension.equals("wav"))
+				String extension = name.substring(ext + 1).toLowerCase();
+				if(extension.equals("mid") || extension.equals("wav"))
 					return true;
 				return false;
 			}
@@ -96,6 +105,7 @@ public class BattleMusicManager {
 			this.musicFiles = new Vector<File>(musicFiles.length);
 			for(File music : musicFiles)
 				this.musicFiles.add(music);
+			nextMusic = this.musicFiles.get(random.nextInt(this.musicFiles.size()));
 		}
 		
 		if(sillyMusicFiles.length == 0)
@@ -105,9 +115,8 @@ public class BattleMusicManager {
 			this.sillyFiles = new Vector<File>(sillyMusicFiles.length);
 			for(File music : sillyMusicFiles)
 				this.sillyFiles.add(music);
+			nextSillyMusic = this.sillyFiles.get(random.nextInt(this.sillyFiles.size()));
 		}
-		
-		random = new Random(System.currentTimeMillis());
 	}
 	
 	public boolean isPlaying()
@@ -123,15 +132,34 @@ public class BattleMusicManager {
 			{
 				Minecraft.getMinecraft().getSoundHandler().pauseSounds();
 				Utility.log("ATTEMPTING TO PLAY MUSIC");
-				if(battleMusicPlayer.loadWav(getRandomMusicFile()) != 0)
+				File music = nextMusic;
+				if(FilenameUtils.getExtension(music.getName()).toLowerCase().equals("mid"))
 				{
-					Utility.log("WARNING: Failed to load WAV music file!");
-					return;
+					if(battleMusicPlayer.loadMidi(music) != 0)
+					{
+						Utility.log("WARNING: Failed to load WAV music file!");
+						return;
+					}
+					else if(battleMusicPlayer.playMidi(true) != 0)
+					{
+						Utility.log("WARNING: Failed to play midi music!");
+						return;
+					}
+					currentIsMidi = true;
 				}
-				if(battleMusicPlayer.playWav(true) != 0)
+				else
 				{
-					Utility.log("WARNING: Failed to play music!");
-					return;
+					if(battleMusicPlayer.loadWav(music) != 0)
+					{
+						Utility.log("WARNING: Failed to load WAV music file!");
+						return;
+					}
+					else if(battleMusicPlayer.playWav(true) != 0)
+					{
+						Utility.log("WARNING: Failed to play music!");
+						return;
+					}
+					currentIsMidi = false;
 				}
 				
 				battleMusicPlaying = true;
@@ -148,15 +176,34 @@ public class BattleMusicManager {
 			{
 				Minecraft.getMinecraft().getSoundHandler().pauseSounds();
 				Utility.log("ATTEMPTING TO PLAY MUSIC");
-				if(battleMusicPlayer.loadWav(getRandomSillyMusicFile()) != 0)
+				File music = nextSillyMusic;
+				if(FilenameUtils.getExtension(music.getName()).toLowerCase() == "mid")
 				{
-					Utility.log("WARNING: Failed to load WAV silly music file!");
-					return;
+					if(battleMusicPlayer.loadMidi(music) != 0)
+					{
+						Utility.log("WARNING: Failed to load WAV music file!");
+						return;
+					}
+					else if(battleMusicPlayer.playMidi(true) != 0)
+					{
+						Utility.log("WARNING: Failed to play midi music!");
+						return;
+					}
+					currentIsMidi = true;
 				}
-				if(battleMusicPlayer.playWav(true) != 0)
+				else
 				{
-					Utility.log("WARNING: Failed to play silly music!");
-					return;
+					if(battleMusicPlayer.loadWav(music) != 0)
+					{
+						Utility.log("WARNING: Failed to load WAV silly music file!");
+						return;
+					}
+					if(battleMusicPlayer.playWav(true) != 0)
+					{
+						Utility.log("WARNING: Failed to play silly music!");
+						return;
+					}
+					currentIsMidi = false;
 				}
 				
 				battleMusicPlaying = true;
@@ -172,22 +219,28 @@ public class BattleMusicManager {
 	{
 		if(battleMusicPlaying)
 		{
-			if(battleMusicPlayer.stop(false) != 0)
+			if(currentIsMidi)
 			{
-				Utility.log("WARNING: Failed to stop music!");
+				if(battleMusicPlayer.stopMidi(false) != 0)
+				{
+					Utility.log("WARNING: Failed to stop midi music!");
+				}
+				nextMusic = this.musicFiles.get(random.nextInt(this.musicFiles.size()));
+				nextSillyMusic = this.sillyFiles.get(random.nextInt(this.sillyFiles.size()));
+			}
+			else
+			{
+				if(battleMusicPlayer.stopWav(false) != 0)
+				{
+					Utility.log("WARNING: Failed to stop music!");
+				}
+				nextMusic = this.musicFiles.get(random.nextInt(this.musicFiles.size()));
+				nextSillyMusic = this.sillyFiles.get(random.nextInt(this.sillyFiles.size()));
 			}
 			battleMusicPlaying = false;
+			
+			
 		}
-	}
-	
-	private File getRandomMusicFile()
-	{
-		return musicFiles.get(random.nextInt(musicFiles.size()));
-	}
-
-	private File getRandomSillyMusicFile()
-	{
-		return sillyFiles.get(random.nextInt(sillyFiles.size()));
 	}
 	
 	public void destroy()

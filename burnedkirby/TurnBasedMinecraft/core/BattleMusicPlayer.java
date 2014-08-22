@@ -1,8 +1,15 @@
 package burnedkirby.TurnBasedMinecraft.core;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import javax.sound.midi.InvalidMidiDataException;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Sequencer;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -18,6 +25,10 @@ public class BattleMusicPlayer {
 	
 	private Clip clip = null;
 	
+	private FileInputStream fis = null;
+	
+	private Sequencer sequencer = null;
+	
 	public BattleMusicPlayer()
 	{
 
@@ -28,6 +39,59 @@ public class BattleMusicPlayer {
 			constructorError = true;
 		}
 		
+		try {
+			sequencer = MidiSystem.getSequencer();
+			sequencer.open();
+		} catch (MidiUnavailableException e) {
+			Utility.log("Unable to get midi sequencer");
+			constructorError = true;
+		}
+	}
+	
+	public int loadMidi(File midi)
+	{
+		if(constructorError)
+			return -2;
+		
+		if(fis != null)
+		{
+			try {
+				fis.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
+		
+		try {
+			fis = new FileInputStream(midi);
+			sequencer.setSequence(new BufferedInputStream(fis));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return -1;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return -1;
+		} catch (InvalidMidiDataException e) {
+			e.printStackTrace();
+			return -1;
+		}
+		
+		return 0;
+	}
+	
+	public int playMidi(boolean loop)
+	{
+		if(constructorError)
+			return -2;
+		
+		if(loop)
+			sequencer.setLoopCount(Sequencer.LOOP_CONTINUOUSLY);
+		else
+			sequencer.setLoopCount(0);
+		
+		sequencer.start();
+		
+		return 0;
 	}
 	
 	public int loadWav(File wav)
@@ -81,6 +145,10 @@ public class BattleMusicPlayer {
 			{
 				clip.loop(Clip.LOOP_CONTINUOUSLY);
 			}
+			else
+			{
+				clip.loop(0);
+			}
 			
 			if(clip != null)
 			{
@@ -91,7 +159,20 @@ public class BattleMusicPlayer {
 		return 0;
 	}
 	
-	public int stop(boolean fade)
+	public int stopMidi(boolean fade)
+	{
+		if(constructorError)
+			return -2;
+		
+		if(sequencer.isRunning())
+		{
+			sequencer.stop();
+		}
+		
+		return 0;
+	}
+	
+	public int stopWav(boolean fade)
 	{
 		if(constructorError)
 			return -2;
@@ -100,15 +181,19 @@ public class BattleMusicPlayer {
 		{
 			if(clip.isActive())
 			{
+				/*
 				if(fade)
 				{
 					new FaderThread().start();
 				}
 				else
 				{
+				*/
 					clip.stop();
 					clip.close();
+				/*
 				}
+				*/
 			}
 		}
 		
@@ -122,8 +207,13 @@ public class BattleMusicPlayer {
 			clip.close();
 		}
 		
+		sequencer.close();
+		
 		try {
-			ais.close();
+			if(fis != null)
+				fis.close();
+			if(ais != null)
+				ais.close();
 			ais = null;
 		} catch (IOException e) {
 			e.printStackTrace();

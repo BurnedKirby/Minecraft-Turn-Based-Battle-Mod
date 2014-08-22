@@ -5,12 +5,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.boss.EntityWither;
@@ -169,10 +168,14 @@ public class BattleSystemServer {
 			String attackerName = null;
 			String attackedName = null;
 			
-			if((attackerName = EntityList.getEntityString(entityAttacker)) == null)
+			if(entityAttacker instanceof EntityLiving && ((EntityLiving)entityAttacker).hasCustomNameTag())
+				attackerName = ((EntityLiving)entityAttacker).getCustomNameTag();
+			else if((attackerName = EntityList.getEntityString(entityAttacker)) == null)
 				attackerName = ((EntityPlayer)entityAttacker).getDisplayName();
 
-			if((attackedName = EntityList.getEntityString(entityAttacked)) == null)
+			if(entityAttacked instanceof EntityLiving && ((EntityLiving)entityAttacked).hasCustomNameTag())
+				attackedName = ((EntityLiving)entityAttacked).getCustomNameTag();
+			else if((attackedName = EntityList.getEntityString(entityAttacked)) == null)
 				attackedName = ((EntityPlayer)entityAttacked).getDisplayName();
 			
 			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.getEntityId(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.getEntityId()));
@@ -209,7 +212,9 @@ public class BattleSystemServer {
 				
 				String newName = null;
 				
-				if((newName = EntityList.getEntityString(newCombatant)) == null)
+				if(newCombatant instanceof EntityLiving && ((EntityLiving)newCombatant).hasCustomNameTag())
+					newName = ((EntityLiving)newCombatant).getCustomNameTag();
+				else if((newName = EntityList.getEntityString(newCombatant)) == null)
 					newName = ((EntityPlayer)newCombatant).getDisplayName();
 				
 				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.getEntityId(), newCombatant, isSideOne, newName, false, Type.DO_NOTHING, inBattleCombatant.getEntityId()));
