@@ -54,6 +54,8 @@ public class CombatantInfo implements Comparable{
 	
 	public static float onCorrectDodgeCriticalBonus = 0.1f;
 	
+	public static int maxParticipantsInBattle = 0;
+	
 	public float evasionBonus = 0.0f;
 	
 	public float criticalBonus = 0.0f;

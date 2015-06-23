@@ -134,7 +134,7 @@ public class BattleSystemServer {
 			return false;
 		else if(exitedBattle.contains(entityAttacker.getEntityId()) || exitedBattle.contains(entityAttacked.getEntityId()))
 		{
-			System.out.println("Canceled attack due to exitedbattle containing entity.");
+			Utility.log("Canceled attack due to exitedbattle containing entity.");
 			return true;
 		}
 		
@@ -150,7 +150,7 @@ public class BattleSystemServer {
 		}
 		List<Integer> justAdded;
 		
-		System.out.println("attack event status " + inBattle);
+		Utility.log("attack event status " + inBattle);
 
 		switch(inBattle)
 		{
@@ -184,7 +184,7 @@ public class BattleSystemServer {
 			{
 				battles.put(battleIDCounter,new Battle(battleIDCounter, combatants, silly));
 			}
-			System.out.println("New battle " + battleIDCounter + " created.");
+			Utility.log("New battle " + battleIDCounter + " created.");
 			battleIDCounter++;
 			returnValue = false;
 			justAdded = new LinkedList<Integer>();
@@ -211,6 +211,13 @@ public class BattleSystemServer {
 				boolean isSideOne = !((battleToJoin = findBattleByEntityID(inBattleCombatant.getEntityId())).getCombatant(inBattleCombatant.getEntityId()).isSideOne);
 				
 				String newName = null;
+				
+				if(CombatantInfo.maxParticipantsInBattle > 1 && battleToJoin.getNumberOfCombatants() >= CombatantInfo.maxParticipantsInBattle)
+				{
+					// Limit number of combatants in battle if setting is greater than 2
+					returnValue = true;
+					break;
+				}
 				
 				if(newCombatant.hasCustomName())
 					newName = newCombatant.getCustomNameTag();

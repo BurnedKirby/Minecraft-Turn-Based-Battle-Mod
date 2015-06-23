@@ -175,6 +175,11 @@ public class Battle{
 				|| entity instanceof EntityGhast;
 	}
 	
+	public int getNumberOfCombatants()
+	{
+		return combatants.size();
+	}
+	
 	private boolean getPlayersReady()
 	{
 		for(CombatantInfo combatant : combatants.values())

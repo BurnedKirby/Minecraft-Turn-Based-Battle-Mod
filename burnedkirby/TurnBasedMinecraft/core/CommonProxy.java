@@ -27,7 +27,7 @@ public class CommonProxy{
 	
 	public static final String configVersionName = "ConfigVersion";
 	
-	public static final String configVersion = "1.0";
+	public static final String configVersion = "1.1";
 	
 	public static final String battleDodgeCounterRatesName = "BattleDodgeCounterRates";
 	
@@ -48,6 +48,8 @@ public class CommonProxy{
 	public static final Float default_onCorrectDodgeHitBonus = 0.1f;
 	
 	public static final Float default_onCorrectDodgeCriticalBonus = 0.1f;
+	
+	public static final Integer default_maxParticipantsInBattle = 0;
 	
 	public CommonProxy()
 	{
@@ -172,7 +174,7 @@ public class CommonProxy{
 				xmlWriter.writeAttribute("Version", configVersion);
 				xmlWriter.writeEndElement();
 				
-				xmlWriter.writeComment("All values are percentages.\n" +
+				xmlWriter.writeComment("\nAll values are percentages except for maxParticipantsInBattle.\n" +
 						"\nevasionRate: default evasion rate for a combatant." +
 						"\ncriticalRate: default critical hit rate for a combatant." +
 						"\nonDodgeEvasionRate: evasion rate when dodging an attack from a combatant that wasn't selected." +
@@ -180,7 +182,9 @@ public class CommonProxy{
 						"\ncounterRateAfterHit: counter-attack rate after being hit by a selected combatant." +
 						"\ncounterRateAfterMiss: counter-attack rate after dodging an attack by a selected combatant." +
 						"\nonCorrectDodgeHitBonus: hit bonus that increases the chances of hitting a combatant on the next turn." +
-						"\nonCorrectDodgeCriticalBonus: critical bonus that increases the chances of a critical hit on a combatant on the next turn.");
+						"\nonCorrectDodgeCriticalBonus: critical bonus that increases the chances of a critical hit on a combatant on the next turn." +
+						"\nmaxParticipantsInBattle: sets how many combatants can be in a battle. If less than 2, assumes infinite numbers can join." +
+						"\n");
 				xmlWriter.writeStartElement(battleDodgeCounterRatesName);
 				xmlWriter.writeAttribute("evasionRate", default_evasionRate.toString());
 				xmlWriter.writeAttribute("criticalRate", default_criticalRate.toString());
@@ -190,6 +194,7 @@ public class CommonProxy{
 				xmlWriter.writeAttribute("counterRateAfterMiss", default_counterRateAfterMiss.toString());
 				xmlWriter.writeAttribute("onCorrectDodgeHitBonus", default_onCorrectDodgeHitBonus.toString());
 				xmlWriter.writeAttribute("onCorrectDodgeCriticalBonus", default_onCorrectDodgeCriticalBonus.toString());
+				xmlWriter.writeAttribute("maxParticipantsInBattle", default_maxParticipantsInBattle.toString());
 				xmlWriter.writeEndElement();
 				
 				xmlWriter.writeStartElement(battleMobIgnoreSystemName);
@@ -264,6 +269,7 @@ public class CommonProxy{
 					CombatantInfo.counterRateAfterMiss = Float.parseFloat(xmlReader.getAttributeValue(null, "counterRateAfterMiss"));
 					CombatantInfo.onCorrectDodgeHitBonus = Float.parseFloat(xmlReader.getAttributeValue(null, "onCorrectDodgeHitBonus"));
 					CombatantInfo.onCorrectDodgeCriticalBonus = Float.parseFloat(xmlReader.getAttributeValue(null, "onCorrectDodgeCriticalBonus"));
+					CombatantInfo.maxParticipantsInBattle = Integer.parseInt(xmlReader.getAttributeValue(null, "maxParticipantsInBattle"));
 				}
 				else if(xmlReader.isStartElement() && xmlReader.getLocalName().equals(battleMobIgnoreSystemName))
 				{
