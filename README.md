@@ -22,8 +22,11 @@ You can change what mobs will enter battle by editing the XML settings file in t
 
 You can change the rates of things in battle such as evasion rate in the XML settings file as well.
 
+You can limit how many combatants are in battle in the XML settings file.
+
 You can add music to the music folder but they must be wav's or mid's.  
 Silly battle music (in the silly folder) will play when attacking a passive mob.
+
 
 
 There exists a [minecraftforum.net thread](http://www.minecraftforum.net/topic/1894841-turn-based-minecraft/) but I will be checking GitHub more often than the thread.
