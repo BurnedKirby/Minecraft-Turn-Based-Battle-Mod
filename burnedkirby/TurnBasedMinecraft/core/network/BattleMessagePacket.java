@@ -1,7 +1,9 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IThreadListener;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -33,7 +35,15 @@ public class BattleMessagePacket implements IMessage {
 		@Override
 		public IMessage onMessage(BattleMessagePacket message,
 				MessageContext ctx) {
-			ctx.getServerHandler().playerEntity.addChatComponentMessage(new ChatComponentText(message.message));
+			final BattleMessagePacket mes = message;
+			final MessageContext context = ctx;
+			IThreadListener mainThread = Minecraft.getMinecraft();
+			mainThread.addScheduledTask(new Runnable() {
+				@Override
+				public void run() {
+					Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(mes.message));
+				}
+			});
 			return null;
 		}
 	}

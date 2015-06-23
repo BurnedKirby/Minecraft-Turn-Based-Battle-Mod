@@ -1,6 +1,8 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.util.IThreadListener;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -39,7 +41,15 @@ public class BattleQueryPacket implements IMessage {
 	{
 		@Override
 		public IMessage onMessage(BattleQueryPacket message, MessageContext ctx) {
-			ModMain.bss.manageQuery(message.battleID, message.type, ctx.getServerHandler().playerEntity);
+			final BattleQueryPacket mes = message;
+			final MessageContext context = ctx;
+			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().playerEntity.worldObj;
+			mainThread.addScheduledTask(new Runnable() {
+				@Override
+				public void run() {
+					ModMain.bss.manageQuery(mes.battleID, mes.type, context.getServerHandler().playerEntity);
+				}
+			});
 			return null;
 		}
 	}

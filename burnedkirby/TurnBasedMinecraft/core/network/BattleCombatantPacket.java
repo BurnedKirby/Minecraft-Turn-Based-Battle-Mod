@@ -1,6 +1,8 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.IThreadListener;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -56,8 +58,15 @@ public class BattleCombatantPacket implements IMessage {
 		@Override
 		public IMessage onMessage(BattleCombatantPacket message,
 				MessageContext ctx) {
-			if(ModMain.proxy.getGui() != null)
-				((BattleGui)ModMain.proxy.getGui()).receiveCombatant(message.combatant);
+			final BattleCombatantPacket mes = message;
+			IThreadListener mainThread = Minecraft.getMinecraft();
+			mainThread.addScheduledTask(new Runnable() {
+				@Override
+				public void run() {
+					if(ModMain.proxy.getGui() != null)
+						((BattleGui)ModMain.proxy.getGui()).receiveCombatant(mes.combatant);
+				}
+			});
 			return null;
 		}
 	}

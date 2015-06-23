@@ -1,6 +1,8 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.IThreadListener;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -54,7 +56,14 @@ public class InitiateBattlePacket implements IMessage {
 		@Override
 		public IMessage onMessage(InitiateBattlePacket message,
 				MessageContext ctx) {
-			ModMain.proxy.newGui(message.battleID, message.player, message.silly);
+			final InitiateBattlePacket mes = message;
+			IThreadListener mainThread = Minecraft.getMinecraft();
+			mainThread.addScheduledTask(new Runnable() {
+				@Override
+				public void run() {
+					ModMain.proxy.newGui(mes.battleID, mes.player, mes.silly);
+				}
+			});
 			return null;
 		}
 	}

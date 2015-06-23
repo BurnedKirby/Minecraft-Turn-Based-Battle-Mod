@@ -1,6 +1,8 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.util.IThreadListener;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -57,7 +59,14 @@ public class BattleCommandPacket implements IMessage {
 		@Override
 		public IMessage onMessage(BattleCommandPacket message,
 				MessageContext ctx) {
-			ModMain.bss.managePlayerUpdate(message.battleID, message.combatant);
+			final BattleCommandPacket mes = message;
+			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().playerEntity.worldObj;
+			mainThread.addScheduledTask(new Runnable() {
+				@Override
+				public void run() {
+					ModMain.bss.managePlayerUpdate(mes.battleID, mes.combatant);
+				}
+			});
 			return null;
 		}
 	}
