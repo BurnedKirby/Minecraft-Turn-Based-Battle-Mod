@@ -1,12 +1,13 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import burnedkirby.TurnBasedMinecraft.ModMain;
 import burnedkirby.TurnBasedMinecraft.gui.BattleGui;
 
-public class CombatantHealthPacket extends AbstractPacket {
+public class CombatantHealthPacket implements IMessage {
 	
 	int entityID;
 	float health;
@@ -21,48 +22,24 @@ public class CombatantHealthPacket extends AbstractPacket {
 	}
 
 	@Override
-	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
-		buffer.writeInt(entityID);
-		buffer.writeFloat(health);
+	public void fromBytes(ByteBuf buf) {
+		entityID = buf.readInt();
+		health = buf.readFloat();
 	}
 
 	@Override
-	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
-		entityID = buffer.readInt();
-		health = buffer.readFloat();
+	public void toBytes(ByteBuf buf) {
+		buf.writeInt(entityID);
+		buf.writeFloat(health);
 	}
 
-	@Override
-	public void handleClientSide(EntityPlayer player) {
-		((BattleGui)ModMain.proxy.getGui()).receiveCombatantHealthInfo(entityID, health);
-	}
-
-	@Override
-	public void handleServerSide(EntityPlayer player) {
-	}
-
-/*	@Override
-	public void write(ByteArrayDataOutput out) {
-		out.writeInt(entityID);
-		out.writeFloat(health);
-	}
-
-	@Override
-	public void read(ByteArrayDataInput in) throws ProtocolException {
-		entityID = in.readInt();
-		health = in.readFloat();
-	}
-
-	@Override
-	public void execute(EntityPlayer player, Side side)
-			throws ProtocolException {
-		if(side.isServer())
-		{
+	public static class Handler implements IMessageHandler<CombatantHealthPacket, IMessage>
+	{
+		@Override
+		public IMessage onMessage(CombatantHealthPacket message,
+				MessageContext ctx) {
+			((BattleGui)ModMain.proxy.getGui()).receiveCombatantHealthInfo(message.entityID, message.health);
+			return null;
 		}
-		else
-		{
-			((BattleGui)ModMain.proxy.getGui()).receiveCombatantHealthInfo(entityID, health);
-		}
-	}*/
-
+	}
 }

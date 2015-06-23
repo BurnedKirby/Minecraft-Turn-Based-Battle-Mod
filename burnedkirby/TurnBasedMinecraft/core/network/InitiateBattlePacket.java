@@ -1,11 +1,10 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-
-import java.io.UnsupportedEncodingException;
-
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo;
 import burnedkirby.TurnBasedMinecraft.ModMain;
 
@@ -13,7 +12,7 @@ import burnedkirby.TurnBasedMinecraft.ModMain;
  * Packet sent to player from the server which notifies the player of
  * entering battle and brings up the BattleGUI.
  */
-public class InitiateBattlePacket extends AbstractPacket {
+public class InitiateBattlePacket implements IMessage {
 	
 	int battleID;
 	CombatantInfo player;
@@ -31,70 +30,32 @@ public class InitiateBattlePacket extends AbstractPacket {
 	}
 
 	@Override
-	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
-		buffer.writeInt(battleID);
-		buffer.writeBoolean(player.isPlayer);
-		buffer.writeInt(player.id);
-		buffer.writeBoolean(player.isSideOne);
-		buffer.writeBoolean(silly);
-		try {
-			encodeUTF(player.name, buffer);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+	public void fromBytes(ByteBuf buf) {
+		battleID = buf.readInt();
+		player.isPlayer = buf.readBoolean();
+		player.id = buf.readInt();
+		player.isSideOne = buf.readBoolean();
+		silly = buf.readBoolean();
+		player.name = ByteBufUtils.readUTF8String(buf);
+	}
+
+	@Override
+	public void toBytes(ByteBuf buf) {
+		buf.writeInt(battleID);
+		buf.writeBoolean(player.isPlayer);
+		buf.writeInt(player.id);
+		buf.writeBoolean(player.isSideOne);
+		buf.writeBoolean(silly);
+		ByteBufUtils.writeUTF8String(buf, player.name);
+	}
+
+	public static class Handler implements IMessageHandler<InitiateBattlePacket, IMessage>
+	{
+		@Override
+		public IMessage onMessage(InitiateBattlePacket message,
+				MessageContext ctx) {
+			ModMain.proxy.newGui(message.battleID, message.player, message.silly);
+			return null;
 		}
 	}
-
-	@Override
-	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
-		battleID = buffer.readInt();
-		player.isPlayer = buffer.readBoolean();
-		player.id = buffer.readInt();
-		player.isSideOne = buffer.readBoolean();
-		silly = buffer.readBoolean();
-		try {
-			player.name = decodeUTF(buffer);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void handleClientSide(EntityPlayer player) {
-		ModMain.proxy.newGui(battleID, this.player, silly);
-	}
-
-	@Override
-	public void handleServerSide(EntityPlayer player) {
-	}
-
-/*	@Override
-	public void write(ByteArrayDataOutput out) {
-		out.writeInt(battleID);
-		out.writeBoolean(player.isPlayer);
-		out.writeInt(player.id);
-		out.writeBoolean(player.isSideOne);
-		out.writeUTF(player.name);
-	}
-
-	@Override
-	public void read(ByteArrayDataInput in) {
-		battleID = in.readInt();
-		player.isPlayer = in.readBoolean();
-		player.id = in.readInt();
-		player.isSideOne = in.readBoolean();
-		player.name = in.readUTF();
-	}
-
-	@Override
-	public void execute(EntityPlayer player, Side side) throws ProtocolException {
-		if(side.isServer())
-		{
-			
-		}
-		else
-		{
-			ModMain.proxy.newGui(battleID, this.player);
-		}
-	}*/
-
 }

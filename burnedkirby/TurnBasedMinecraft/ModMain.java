@@ -4,22 +4,25 @@
 
 package burnedkirby.TurnBasedMinecraft;
 
-import java.util.Iterator;
-
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.Mod.Instance;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import net.minecraftforge.fml.relauncher.Side;
 import burnedkirby.TurnBasedMinecraft.core.CommonProxy;
-import burnedkirby.TurnBasedMinecraft.core.network.PacketPipeline;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.Mod.EventHandler;
-import cpw.mods.fml.common.Mod.Instance;
-import cpw.mods.fml.common.ModContainer;
-import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerStartingEvent;
-import cpw.mods.fml.common.event.FMLServerStoppingEvent;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleCombatantPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleCommandPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleMessagePacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleQueryPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.CombatantHealthPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.InitiateBattlePacket;
 
 
 @Mod(modid=ModMain.modid,name="BurnedKirby's Turn-Based Minecraft",version=ModMain.versionNumber)
@@ -41,7 +44,7 @@ public class ModMain {
 	
 	public static final String battleSettingsFile = modFolder + "/battleSettings.xml";
 	
-	public static PacketPipeline pp = new PacketPipeline();
+	public static SimpleNetworkWrapper network;
 	
 	@EventHandler
 	public void initialize(FMLInitializationEvent event){
@@ -50,12 +53,20 @@ public class ModMain {
 		proxy.initializeSettings();
 		proxy.initializeMusicManager();
 		
-		pp.initialize();
+		network = NetworkRegistry.INSTANCE.newSimpleChannel("BK_TBM_Channel");
+
+		network.registerMessage(BattleCombatantPacket.Handler.class, BattleCombatantPacket.class, 0, Side.CLIENT);
+		network.registerMessage(BattleCommandPacket.Handler.class, BattleCommandPacket.class, 1, Side.SERVER);
+		network.registerMessage(BattleMessagePacket.Handler.class, BattleMessagePacket.class, 2, Side.CLIENT);
+		network.registerMessage(BattleQueryPacket.Handler.class, BattleQueryPacket.class, 3, Side.SERVER);
+		network.registerMessage(BattleStatusPacket.Handler.class, BattleStatusPacket.class, 4, Side.CLIENT);
+		network.registerMessage(CombatantHealthPacket.Handler.class, CombatantHealthPacket.class, 5, Side.CLIENT);
+		network.registerMessage(InitiateBattlePacket.Handler.class, InitiateBattlePacket.class, 6, Side.CLIENT);
 	}
 	
 	@EventHandler
 	public void initialize(FMLPostInitializationEvent event){
-		pp.postInitialize();
+
 	}
 	
 	@EventHandler

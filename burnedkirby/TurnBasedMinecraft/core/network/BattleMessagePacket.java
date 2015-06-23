@@ -1,14 +1,13 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-
-import java.io.UnsupportedEncodingException;
-
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentText;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class BattleMessagePacket extends AbstractPacket {
+public class BattleMessagePacket implements IMessage {
 	
 	String message;
 	
@@ -19,53 +18,23 @@ public class BattleMessagePacket extends AbstractPacket {
 		this.message = message;
 	}
 
-/*	@Override
-	public void write(ByteArrayDataOutput out) {
-		out.writeUTF(message);
+	@Override
+	public void fromBytes(ByteBuf buf) {
+		message = ByteBufUtils.readUTF8String(buf);
 	}
 
 	@Override
-	public void read(ByteArrayDataInput in) throws ProtocolException {
-		message = in.readUTF();
+	public void toBytes(ByteBuf buf) {
+		ByteBufUtils.writeUTF8String(buf, message);
 	}
 
-	@Override
-	public void execute(EntityPlayer player, Side side)
-			throws ProtocolException {
-		if(side.isServer())
-		{}
-		else
-		{
-			Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(message);
-		}
-	}*/
-
-	@Override
-	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
-		try {
-			encodeUTF(message, buffer);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+	public static class Handler implements IMessageHandler<BattleMessagePacket, IMessage>
+	{
+		@Override
+		public IMessage onMessage(BattleMessagePacket message,
+				MessageContext ctx) {
+			ctx.getServerHandler().playerEntity.addChatComponentMessage(new ChatComponentText(message.message));
+			return null;
 		}
 	}
-
-	@Override
-	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
-		try {
-			message = decodeUTF(buffer);
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void handleClientSide(EntityPlayer player) {
-		player.addChatComponentMessage(new ChatComponentText(message));
-	}
-
-	@Override
-	public void handleServerSide(EntityPlayer player) {
-		
-	}
-
 }

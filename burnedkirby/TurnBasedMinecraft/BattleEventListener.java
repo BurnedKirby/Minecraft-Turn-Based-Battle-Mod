@@ -5,7 +5,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class BattleEventListener {
 	
@@ -31,10 +31,10 @@ public class BattleEventListener {
 		String name = null;
 		
 		if((sName = EntityList.getEntityString(event.source.getEntity())) == null)
-			sName = ((EntityPlayer)event.source.getEntity()).getDisplayName();
+			sName = event.source.getEntity().getName();
 
 		if((name = EntityList.getEntityString(event.entity)) == null)
-			name = ((EntityPlayer)event.entity).getDisplayName();
+			name = event.entity.getName();
 		
 		Utility.log(sName + "(" + event.source.getEntity().getEntityId()
 				+ ") hit " + name + "(" + event.entity.getEntityId() + ").");
@@ -44,7 +44,7 @@ public class BattleEventListener {
 		else
 		{
 			if((name = EntityList.getEntityString(ModMain.bss.attackingEntity)) == null)
-				name = ((EntityPlayer)ModMain.bss.attackingEntity).getDisplayName();
+				name = ModMain.bss.attackingEntity.getName();
 		}
 		
 		Utility.log("Battle Attacker is currently " + name);

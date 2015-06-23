@@ -9,7 +9,6 @@ import java.util.Stack;
 import java.util.TreeMap;
 
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.boss.EntityWither;
@@ -45,6 +44,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
 import burnedkirby.TurnBasedMinecraft.core.CombatantInfoSet;
+import burnedkirby.TurnBasedMinecraft.core.Utility;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
 
 public class BattleSystemServer {
@@ -168,15 +168,15 @@ public class BattleSystemServer {
 			String attackerName = null;
 			String attackedName = null;
 			
-			if(entityAttacker instanceof EntityLiving && ((EntityLiving)entityAttacker).hasCustomNameTag())
-				attackerName = ((EntityLiving)entityAttacker).getCustomNameTag();
+			if(entityAttacker.hasCustomName())
+				attackerName = entityAttacker.getCustomNameTag();
 			else if((attackerName = EntityList.getEntityString(entityAttacker)) == null)
-				attackerName = ((EntityPlayer)entityAttacker).getDisplayName();
+				attackerName = entityAttacker.getName();
 
-			if(entityAttacked instanceof EntityLiving && ((EntityLiving)entityAttacked).hasCustomNameTag())
-				attackedName = ((EntityLiving)entityAttacked).getCustomNameTag();
+			if(entityAttacked.hasCustomName())
+				attackedName = entityAttacked.getCustomNameTag();
 			else if((attackedName = EntityList.getEntityString(entityAttacked)) == null)
-				attackedName = ((EntityPlayer)entityAttacked).getDisplayName();
+				attackedName = entityAttacked.getName();
 			
 			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.getEntityId(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.getEntityId()));
 			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.getEntityId(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacked.getAITarget() != null ? entityAttacked.getAITarget().getEntityId() : 0));
@@ -212,10 +212,10 @@ public class BattleSystemServer {
 				
 				String newName = null;
 				
-				if(newCombatant instanceof EntityLiving && ((EntityLiving)newCombatant).hasCustomNameTag())
-					newName = ((EntityLiving)newCombatant).getCustomNameTag();
+				if(newCombatant.hasCustomName())
+					newName = newCombatant.getCustomNameTag();
 				else if((newName = EntityList.getEntityString(newCombatant)) == null)
-					newName = ((EntityPlayer)newCombatant).getDisplayName();
+					newName = newCombatant.getName();
 				
 				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.getEntityId(), newCombatant, isSideOne, newName, false, Type.DO_NOTHING, inBattleCombatant.getEntityId()));
 			}
@@ -298,7 +298,7 @@ public class BattleSystemServer {
 
 			if(battles.get(battleID) == null)
 			{
-				ModMain.pp.sendTo(new BattleStatusPacket(false), (EntityPlayerMP)player);
+				ModMain.network.sendTo(new BattleStatusPacket(false), (EntityPlayerMP)player);
 				return;
 			}
 			switch(type)
@@ -321,7 +321,7 @@ public class BattleSystemServer {
 		{
 			if(battles.get(battleID) == null)
 			{
-				ModMain.pp.sendTo(new BattleStatusPacket(false), (EntityPlayerMP)player.entityReference);
+				ModMain.network.sendTo(new BattleStatusPacket(false), (EntityPlayerMP)player.entityReference);
 				return;
 			}
 			battles.get(battleID).updatePlayerStatus(player);
@@ -366,7 +366,7 @@ public class BattleSystemServer {
 					
 					while(!removalQueue.isEmpty())
 					{
-						System.out.println("Battle removed.");
+						Utility.log("Battle removed.");
 						battles.remove(removalQueue.pop());
 					}
 					

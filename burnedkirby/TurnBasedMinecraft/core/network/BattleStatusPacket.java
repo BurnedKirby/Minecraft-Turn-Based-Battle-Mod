@@ -1,9 +1,10 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import burnedkirby.TurnBasedMinecraft.ModMain;
 import burnedkirby.TurnBasedMinecraft.gui.BattleGui;
 
@@ -12,7 +13,7 @@ import burnedkirby.TurnBasedMinecraft.gui.BattleGui;
  * the player is in exists, and the sizes of the two sides.
  * This packet is sent as a response from the player's BattleQueryPacket.
  */
-public class BattleStatusPacket extends AbstractPacket {
+public class BattleStatusPacket implements IMessage {
 	
 	boolean found;
 	boolean forceUpdate;
@@ -45,93 +46,46 @@ public class BattleStatusPacket extends AbstractPacket {
 	{}
 
 	@Override
-	public void encodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
-		buffer.writeBoolean(found);
-		buffer.writeBoolean(forceUpdate);
-		buffer.writeInt(battleSize);
-		buffer.writeBoolean(playerPhase);
-		buffer.writeBoolean(turnChoiceReceived);
-		buffer.writeShort(timer);
+	public void fromBytes(ByteBuf buf) {
+		found = buf.readBoolean();
+		forceUpdate = buf.readBoolean();
+		battleSize = buf.readInt();
+		playerPhase = buf.readBoolean();
+		turnChoiceReceived = buf.readBoolean();
+		timer = buf.readShort();
 	}
 
 	@Override
-	public void decodeInto(ChannelHandlerContext ctx, ByteBuf buffer) {
-		found = buffer.readBoolean();
-		forceUpdate = buffer.readBoolean();
-		battleSize = buffer.readInt();
-		playerPhase = buffer.readBoolean();
-		turnChoiceReceived = buffer.readBoolean();
-		timer = buffer.readShort();
+	public void toBytes(ByteBuf buf) {
+		buf.writeBoolean(found);
+		buf.writeBoolean(forceUpdate);
+		buf.writeInt(battleSize);
+		buf.writeBoolean(playerPhase);
+		buf.writeBoolean(turnChoiceReceived);
+		buf.writeShort(timer);
 	}
 
-	@Override
-	public void handleClientSide(EntityPlayer player) {
-		if(found)
-		{
-			if(((BattleGui)ModMain.proxy.getGui()) == null && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
-			{
-				Minecraft.getMinecraft().setIngameFocus();
-				return;
-			}
-			else if(((BattleGui)ModMain.proxy.getGui()) == null)
-				return;
-			((BattleGui)ModMain.proxy.getGui()).checkBattleInfo(forceUpdate, battleSize, playerPhase, turnChoiceReceived, timer);
-		}
-		else if(!found && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
-		{
-			Minecraft.getMinecraft().setIngameFocus();
-		}
-	}
+	public static class Handler implements IMessageHandler<BattleStatusPacket, IMessage>
+	{
+		@Override
+		public IMessage onMessage(BattleStatusPacket message, MessageContext ctx) {
 
-	@Override
-	public void handleServerSide(EntityPlayer player) {
-	}
-
-/*	@Override
-	public void write(ByteArrayDataOutput out) {
-		out.writeBoolean(found);
-		out.writeBoolean(forceUpdate);
-		out.writeInt(battleSize);
-		out.writeBoolean(playerPhase);
-		out.writeBoolean(turnChoiceReceived);
-		out.writeShort(timer);
-	}
-
-	@Override
-	public void read(ByteArrayDataInput in) throws ProtocolException {
-		found = in.readBoolean();
-		forceUpdate = in.readBoolean();
-		battleSize = in.readInt();
-		playerPhase = in.readBoolean();
-		turnChoiceReceived = in.readBoolean();
-		timer = in.readShort();
-	}
-
-	@Override
-	public void execute(EntityPlayer player, Side side)
-			throws ProtocolException {
-		if(side.isServer())
-		{
-			//throw new ProtocolException("Packet can only be received by the player!");
-		}
-		else
-		{
-			if(found) //TODO check if null pointer exception can happen
+			if(message.found)
 			{
 				if(((BattleGui)ModMain.proxy.getGui()) == null && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
 				{
 					Minecraft.getMinecraft().setIngameFocus();
-					return;
+					return null;
 				}
 				else if(((BattleGui)ModMain.proxy.getGui()) == null)
-					return;
-				((BattleGui)ModMain.proxy.getGui()).checkBattleInfo(forceUpdate, battleSize, playerPhase, turnChoiceReceived, timer);
+					return null;
+				((BattleGui)ModMain.proxy.getGui()).checkBattleInfo(message.forceUpdate, message.battleSize, message.playerPhase, message.turnChoiceReceived, message.timer);
 			}
-			else if(!found && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
+			else if(!message.found && Minecraft.getMinecraft().currentScreen instanceof BattleGui)
 			{
 				Minecraft.getMinecraft().setIngameFocus();
 			}
+			return null;
 		}
-	}*/
-
+	}
 }

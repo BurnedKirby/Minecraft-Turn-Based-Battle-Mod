@@ -69,7 +69,7 @@ public class Battle{
 			Utility.log("Initializing battle with combatant " + combatant.name);
 			if(combatant.isPlayer)
 			{
-				ModMain.pp.sendTo(new InitiateBattlePacket(battleID,combatant, silly), (EntityPlayerMP)combatant.entityReference);
+				ModMain.network.sendTo(new InitiateBattlePacket(battleID,combatant, silly), (EntityPlayerMP)combatant.entityReference);
 				combatant.setTurnTickTimer(turnTickTime);
 			}
 			else if(isFightingEntity(combatant.entityReference))
@@ -104,7 +104,7 @@ public class Battle{
 
 			if(newCombatant.isPlayer)
 			{
-				ModMain.pp.sendTo(new InitiateBattlePacket(battleID,newCombatant,silly), (EntityPlayerMP)newCombatant.entityReference);
+				ModMain.network.sendTo(new InitiateBattlePacket(battleID,newCombatant,silly), (EntityPlayerMP)newCombatant.entityReference);
 				newCombatant.setTurnTickTimer(turnTickTime);
 			}
 			
@@ -355,12 +355,12 @@ public class Battle{
 					
 					if(missCheck(combatant, combatants.get(combatant.target)))
 					{
-						name = ((EntityPlayer)combatantEntity).getDisplayName();
+						name = combatantEntity.getName();
 						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
 
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							targetName = targetEntity.getName();
 							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
@@ -369,12 +369,12 @@ public class Battle{
 					{
 						targetEntity.hurtResistantTime = 0;
 
-						name = ((EntityPlayer)combatantEntity).getDisplayName();
+						name = combatantEntity.getName();
 						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
 
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							targetName = targetEntity.getName();
 							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
@@ -393,53 +393,16 @@ public class Battle{
 				}
 				else if(combatantEntity instanceof EntityMob || combatantEntity instanceof EntityGolem)
 				{
-					if(((EntityCreature)combatantEntity).getEntityToAttack() instanceof EntityLivingBase && combatants.containsKey(((EntityMob) combatantEntity).getEntityToAttack().getEntityId()))
-						targetEntity = (EntityLivingBase) ((EntityCreature)combatantEntity).getEntityToAttack();
-					else
-						targetEntity = null;
+					CombatantInfo targetInfo = getRandomPlayerTarget(combatant, combatantArray);
+					if(targetInfo != null)
+						targetEntity = getRandomPlayerTarget(combatant, combatantArray).entityReference;
 					
 					if(targetEntity == null)
-						targetName = "NULL (THIS SHOULD NEVER HAPPEN!?!)";
+						continue;
 					else if((targetName = EntityList.getEntityString(targetEntity)) == null)
-						targetName = ((EntityPlayer)targetEntity).getDisplayName();
+						targetName = targetEntity.getName();
 					
 					Utility.log(EntityList.getEntityString(combatantEntity) + " targeting " + (targetEntity != null ? targetName : "null"));
-					
-					if(targetEntity == null)
-					{
-						rand = ModMain.bss.random.nextInt(combatants.size()) + combatants.size();
-						int k=0,j=0,picked=0;
-						boolean nonPlayersExist = true;
-						for(; j<rand; k++)
-						{
-							if(combatantEntity instanceof EntityGolem && !combatantArray[k % combatantArray.length].isPlayer
-									&& combatantArray[k % combatantArray.length].id != combatantEntity.getEntityId() && nonPlayersExist)
-							{
-								j++;
-								picked = k % combatantArray.length;
-							}
-							else if(combatantArray[k % combatantArray.length].isPlayer)
-							{
-								j++;
-								picked = k % combatantArray.length;
-							}
-							if(k > combatants.size() && j == 0)
-							{
-								if(combatantEntity instanceof EntityGolem)
-								{
-									nonPlayersExist = false;
-									k=0;
-									j=0;
-									continue;
-								}
-								picked = -1;
-								break;
-							}
-						}
-						if(picked == -1)
-							continue;
-						targetEntity = combatantArray[picked].entityReference;
-					}
 					
 					if(missCheck(combatant, combatants.get(targetEntity.getEntityId())))
 					{
@@ -447,7 +410,7 @@ public class Battle{
 						
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							targetName = targetEntity.getName();
 							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
@@ -461,7 +424,7 @@ public class Battle{
 						
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							targetName = targetEntity.getName();
 							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
@@ -473,28 +436,15 @@ public class Battle{
 				}
 				else if(combatantEntity instanceof EntitySlime)
 				{
-					targetEntity = ((EntitySlime)combatantEntity).worldObj.getClosestVulnerablePlayerToEntity(combatantEntity, 16.0);
+					targetEntity = ((EntitySlime)combatantEntity).worldObj.getClosestPlayerToEntity(combatantEntity, 16.0);
 					if(targetEntity == null || !combatants.containsKey(targetEntity.getEntityId()))
 					{
-
-						rand = ModMain.bss.random.nextInt(combatants.size()) + combatants.size();
-						int k=0,j=0,picked=0;
-						for(; j<rand; k++)
-						{
-							if(combatantArray[k % combatantArray.length].isPlayer)
-							{
-								j++;
-								picked = k % combatantArray.length;
-							}
-							if(k > combatants.size() && j == 0)
-							{
-								picked = -1;
-								break;
-							}
-						}
-						if(picked == -1)
+						// select player at random, if player exists
+						CombatantInfo targetInfo = getRandomPlayerTarget(combatant, combatantArray);
+						if(targetInfo != null)
+							targetEntity = getRandomPlayerTarget(combatant, combatantArray).entityReference;
+						else
 							continue;
-						targetEntity = combatantArray[picked].entityReference;
 					}
 					
 					if(missCheck(combatant, combatants.get(targetEntity.getEntityId())))
@@ -503,7 +453,7 @@ public class Battle{
 						
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							targetName = targetEntity.getName();
 							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
@@ -517,7 +467,7 @@ public class Battle{
 						
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							targetName = targetEntity.getName();
 							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
@@ -710,13 +660,13 @@ public class Battle{
 		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.isPlayer)
-				ModMain.pp.sendTo(new BattleStatusPacket(!battleEnded && (combatant.entityReference.isEntityAlive()), forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready, combatant.turnTickTimer), (EntityPlayerMP)combatant.entityReference);
+				ModMain.network.sendTo(new BattleStatusPacket(!battleEnded && (combatant.entityReference.isEntityAlive()), forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, combatant.ready, combatant.turnTickTimer), (EntityPlayerMP)combatant.entityReference);
 		}
 	}
 	
 	protected void notifyPlayer(boolean forceUpdate, CombatantInfo player, boolean fledBattle)
 	{
-		ModMain.pp.sendTo(new BattleStatusPacket(!battleEnded && (player.entityReference.isEntityAlive()) && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready, player.turnTickTimer), (EntityPlayerMP)player.entityReference);
+		ModMain.network.sendTo(new BattleStatusPacket(!battleEnded && (player.entityReference.isEntityAlive()) && !fledBattle, forceUpdate, combatants.size(), status == BattleStatus.PLAYER_PHASE, player.ready, player.turnTickTimer), (EntityPlayerMP)player.entityReference);
 	}
 	
 	protected void notifyPlayersWithMessage(String message)
@@ -725,7 +675,7 @@ public class Battle{
 		{
 			if(combatant.isPlayer)
 			{
-				ModMain.pp.sendTo(new BattleMessagePacket(message), (EntityPlayerMP) combatant.entityReference);
+				ModMain.network.sendTo(new BattleMessagePacket(message), (EntityPlayerMP) combatant.entityReference);
 			}
 		}
 	}
@@ -745,7 +695,7 @@ public class Battle{
 	{
 		for(CombatantInfo combatant : combatants.values())
 		{
-			ModMain.pp.sendTo(new BattleCombatantPacket(combatant), (EntityPlayerMP)player);
+			ModMain.network.sendTo(new BattleCombatantPacket(combatant), (EntityPlayerMP)player);
 		}
 	}
 	
@@ -765,9 +715,33 @@ public class Battle{
 			{
 				for(int j=0; j<combatantListCopy.length; j++)
 				{
-					ModMain.pp.sendTo(new CombatantHealthPacket(combatantListCopy[j].id, combatantListCopy[j].health), (EntityPlayerMP)combatantListCopy[i].entityReference);
+					ModMain.network.sendTo(new CombatantHealthPacket(combatantListCopy[j].id, combatantListCopy[j].health), (EntityPlayerMP)combatantListCopy[i].entityReference);
 				}
 			}
 		}
+	}
+	
+	private CombatantInfo getRandomPlayerTarget(CombatantInfo combatant, CombatantInfo[] combatantArray)
+	{
+		int randomValue = ModMain.bss.random.nextInt(combatantArray.length);
+		CombatantInfo returnValue = null;
+		int loopIter = 0;
+		while(returnValue == null)
+		{
+			if(combatantArray[randomValue].isPlayer)
+			{
+				returnValue = combatantArray[randomValue];
+			}
+			else
+			{
+				randomValue = (randomValue + 1) % combatantArray.length;
+			}
+			if(loopIter++ > combatantArray.length)
+			{
+				break;
+			}
+		}
+		
+		return returnValue;
 	}
 }

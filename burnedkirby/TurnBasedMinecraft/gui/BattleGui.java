@@ -66,7 +66,7 @@ public class BattleGui extends GuiScreen {
 		info[1] = "";
 		getMenu(-2);
 		updatingCombatants = false;
-		ModMain.pp.sendToServer(new BattleQueryPacket(battleID,(short) 0));
+		ModMain.network.sendToServer(new BattleQueryPacket(battleID,(short) 0));
 		turnChoiceSent = false;
 		if(silly)
 		{
@@ -86,7 +86,7 @@ public class BattleGui extends GuiScreen {
 		{
 			combatants.clear();
 			updatingCombatants = true;
-			ModMain.pp.sendToServer(new BattleQueryPacket(battleID,(short) 1));
+			ModMain.network.sendToServer(new BattleQueryPacket(battleID,(short) 1));
 		}
 		update(playerPhase, turnChoiceReceived);
 	}
@@ -99,7 +99,7 @@ public class BattleGui extends GuiScreen {
 			if(combatants.size() == serverBattleSize)
 			{
 				updatingCombatants = false;
-				ModMain.pp.sendToServer(new BattleQueryPacket(battleID,(short) 0));
+				ModMain.network.sendToServer(new BattleQueryPacket(battleID,(short) 0));
 			}
 		}
 	}
@@ -155,9 +155,9 @@ public class BattleGui extends GuiScreen {
 		super.drawScreen(par1, par2, par3);
 		
 		if(info[0] != "")
-			Minecraft.getMinecraft().fontRenderer.drawString(info[0], width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[0])/2, height - 90, 0xffffffff);
+			Minecraft.getMinecraft().fontRendererObj.drawString(info[0], width/2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(info[0])/2, height - 90, 0xffffffff);
 		if(info[1] != "")
-			Minecraft.getMinecraft().fontRenderer.drawString(info[1], width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[1])/2, height - 80, 0xffffffff);
+			Minecraft.getMinecraft().fontRendererObj.drawString(info[1], width/2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(info[1])/2, height - 80, 0xffffffff);
 		
 		if(!turnChoiceSent)
 		{
@@ -171,13 +171,13 @@ public class BattleGui extends GuiScreen {
 			
 			String timerString = "Time left: " + formatString + (timer / 2);
 			
-			Minecraft.getMinecraft().fontRenderer.drawString(timerString, width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(timerString)/2, 10, 0xffffffff);
+			Minecraft.getMinecraft().fontRendererObj.drawString(timerString, width/2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(timerString)/2, 10, 0xffffffff);
 		}
 		
 		updateTick--;
 		if(updateTick==0)
 		{
-			ModMain.pp.sendToServer(new BattleQueryPacket(battleID,(short) 0));
+			ModMain.network.sendToServer(new BattleQueryPacket(battleID,(short) 0));
 			updateTick = updateWaitTime;
 		}
 	}
@@ -218,7 +218,7 @@ public class BattleGui extends GuiScreen {
 	 */
 	private void drawCombatant(CombatantInfo combatant, int x, int y, int color)
 	{
-		int nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(combatant.name);
+		int nameLength = Minecraft.getMinecraft().fontRendererObj.getStringWidth(combatant.name);
 		String name = ScorePlayerTeam.formatPlayerName(Minecraft.getMinecraft().theWorld.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 		if(combatantButton)
 		{
@@ -229,7 +229,7 @@ public class BattleGui extends GuiScreen {
 		}
 		else
 		{
-			Minecraft.getMinecraft().fontRenderer.drawString(name, x - nameLength/2, y, color);
+			Minecraft.getMinecraft().fontRendererObj.drawString(name, x - nameLength/2, y, color);
 		}
 		
 		//Draw Health
@@ -350,7 +350,7 @@ public class BattleGui extends GuiScreen {
 		case 2: //flee
 			player.type = Type.FLEE;
 			player.target = player.id;
-			ModMain.pp.sendToServer(new BattleCommandPacket(battleID, player));
+			ModMain.network.sendToServer(new BattleCommandPacket(battleID, player));
 			turnChoiceSent = true;
 			break;
 		case 3: //attack menu
@@ -361,7 +361,7 @@ public class BattleGui extends GuiScreen {
 		case 5: //attack
 			player.target = ((IDSelectionButton)button).entityID;
 			player.type = Type.ATTACK;
-			ModMain.pp.sendToServer(new BattleCommandPacket(battleID, player));
+			ModMain.network.sendToServer(new BattleCommandPacket(battleID, player));
 			turnChoiceSent = true;
 			break;
 		case 6: //change weapon
@@ -370,7 +370,7 @@ public class BattleGui extends GuiScreen {
 			
 			player.type = Type.CHANGE_WEAPON;
 			player.target = player.id;
-			ModMain.pp.sendToServer(new BattleCommandPacket(battleID, player));
+			ModMain.network.sendToServer(new BattleCommandPacket(battleID, player));
 			turnChoiceSent = true;
 			break;
 		case 7: //dodge/counter menu
@@ -381,7 +381,7 @@ public class BattleGui extends GuiScreen {
 		case 8: //dodge/counter
 			player.target = ((IDSelectionButton)button).entityID;
 			player.type = Type.DODGE_COUNTER;
-			ModMain.pp.sendToServer(new BattleCommandPacket(battleID, player));
+			ModMain.network.sendToServer(new BattleCommandPacket(battleID, player));
 			turnChoiceSent = true;
 			break;
 		default: break;
