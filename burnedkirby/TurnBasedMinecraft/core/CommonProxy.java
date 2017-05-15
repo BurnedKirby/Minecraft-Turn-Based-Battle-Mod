@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
-import java.util.Date;
 
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLInputFactory;
@@ -228,6 +227,22 @@ public class CommonProxy{
 				xmlWriter.writeAttribute("Zombie", "false");
 				xmlWriter.writeAttribute("Dragon", "true");
 				xmlWriter.writeAttribute("WitherBoss", "true");
+				xmlWriter.writeAttribute("Donkey", "false");
+				xmlWriter.writeAttribute("Llama", "false");
+				xmlWriter.writeAttribute("Mule", "false");
+				xmlWriter.writeAttribute("ZombieHorse", "false");
+				xmlWriter.writeAttribute("SkeletonHorse", "false");
+				xmlWriter.writeAttribute("Rabbit", "false");
+				xmlWriter.writeAttribute("ElderGuardian", "true");
+				xmlWriter.writeAttribute("Endermite", "false");
+				xmlWriter.writeAttribute("Evoker", "false");
+				xmlWriter.writeAttribute("Vindicator", "false");
+				xmlWriter.writeAttribute("Husk", "false");
+				xmlWriter.writeAttribute("PolarBear", "false");
+				xmlWriter.writeAttribute("Shulker", "false");
+				xmlWriter.writeAttribute("Stray", "false");
+				xmlWriter.writeAttribute("Vex", "false");
+				xmlWriter.writeAttribute("ZombieVillager", "false");
 				xmlWriter.writeEndElement();
 				
 				xmlWriter.writeEndElement();
@@ -303,6 +318,22 @@ public class CommonProxy{
 					ModMain.bss.ignoreSystemEntityMap.put("Zombie", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Zombie")));
 					ModMain.bss.ignoreSystemEntityMap.put("Dragon", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Dragon")));
 					ModMain.bss.ignoreSystemEntityMap.put("WitherBoss", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "WitherBoss")));
+					ModMain.bss.ignoreSystemEntityMap.put("Donkey", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Donkey")));
+					ModMain.bss.ignoreSystemEntityMap.put("Llama", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "LLama")));
+					ModMain.bss.ignoreSystemEntityMap.put("Mule", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Mule")));
+					ModMain.bss.ignoreSystemEntityMap.put("SkeletonHorse", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "SkeletonHorse")));
+					ModMain.bss.ignoreSystemEntityMap.put("ZombieHorse", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "ZombieHorse")));
+					ModMain.bss.ignoreSystemEntityMap.put("Rabbit", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Rabbit")));
+					ModMain.bss.ignoreSystemEntityMap.put("ElderGuardian", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "ElderGuardian")));
+					ModMain.bss.ignoreSystemEntityMap.put("Endermite", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Endermite")));
+					ModMain.bss.ignoreSystemEntityMap.put("Evoker", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Evoker")));
+					ModMain.bss.ignoreSystemEntityMap.put("Vindicator", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Vindicator")));
+					ModMain.bss.ignoreSystemEntityMap.put("Husk", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Husk")));
+					ModMain.bss.ignoreSystemEntityMap.put("PolarBear", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "PolarBear")));
+					ModMain.bss.ignoreSystemEntityMap.put("Shulker", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Shulker")));
+					ModMain.bss.ignoreSystemEntityMap.put("Stray", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Stray")));
+					ModMain.bss.ignoreSystemEntityMap.put("Vex", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "Vex")));
+					ModMain.bss.ignoreSystemEntityMap.put("ZombieVillager", Boolean.parseBoolean(xmlReader.getAttributeValue(null, "ZombieVillager")));
 				}
 			}
 			

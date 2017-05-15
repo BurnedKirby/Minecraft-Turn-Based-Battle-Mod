@@ -4,14 +4,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Random;
 import java.util.Vector;
 
 import org.apache.commons.io.FilenameUtils;
 
-import net.minecraft.client.Minecraft;
 import burnedkirby.TurnBasedMinecraft.ModMain;
+import net.minecraft.client.Minecraft;
 
 public class BattleMusicManager {
 	
@@ -42,7 +41,7 @@ public class BattleMusicManager {
 		
 		File musicFolder = new File(battleMusicFolder);
 		
-		File sillyMusicFolder = new File(this.sillyMusicFolder);
+		File sillyMusicFolder = new File(BattleMusicManager.sillyMusicFolder);
 
 		if(!musicFolder.exists())
 		{

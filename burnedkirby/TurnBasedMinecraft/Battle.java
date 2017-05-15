@@ -5,7 +5,13 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.TreeMap;
 
-import net.minecraft.entity.EntityCreature;
+import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
+import burnedkirby.TurnBasedMinecraft.core.Utility;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleCombatantPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleMessagePacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.CombatantHealthPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.InitiateBattlePacket;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
@@ -17,13 +23,6 @@ import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.scoreboard.ScorePlayerTeam;
-import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
-import burnedkirby.TurnBasedMinecraft.core.Utility;
-import burnedkirby.TurnBasedMinecraft.core.network.BattleCombatantPacket;
-import burnedkirby.TurnBasedMinecraft.core.network.BattleMessagePacket;
-import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
-import burnedkirby.TurnBasedMinecraft.core.network.CombatantHealthPacket;
-import burnedkirby.TurnBasedMinecraft.core.network.InitiateBattlePacket;
 
 public class Battle{
 	private Map<Integer,CombatantInfo> combatants;
@@ -109,7 +108,7 @@ public class Battle{
 			}
 			
 			notifyPlayers(true);
-			String name = ScorePlayerTeam.formatPlayerName(newCombatant.entityReference.worldObj.getScoreboard().getPlayersTeam(newCombatant.name), newCombatant.name);
+			String name = ScorePlayerTeam.formatPlayerName(newCombatant.entityReference.world.getScoreboard().getPlayersTeam(newCombatant.name), newCombatant.name);
 			notifyPlayersWithMessage(name + " has entered battle!");
 		}
 		else
@@ -228,7 +227,7 @@ public class Battle{
 			CombatantInfo combatant = newCombatantQueue.pop();
 			combatants.put(combatant.id, combatant);
 			ModMain.bss.inBattle.add(combatant);
-			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.worldObj.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
+			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.world.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 			notifyPlayersWithMessage(name + " has entered battle!");
 		}
 		
@@ -327,7 +326,7 @@ public class Battle{
 		while(!messageQueue.isEmpty())
 		{
 			combatant = messageQueue.pop();
-			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.worldObj.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
+			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.world.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 			notifyPlayersWithMessage(name + " has fled battle!");
 		}
 		
@@ -335,7 +334,6 @@ public class Battle{
 		EntityLivingBase combatantEntity = null;
 		EntityLivingBase targetEntity = null;
 		CombatantInfo[] combatantArray = combatants.values().toArray(new CombatantInfo[0]);
-		int rand;
 		for(int i=0; i < combatantArray.length; i++)
 		{
 			combatant = combatantArray[i];
@@ -346,7 +344,7 @@ public class Battle{
 			if(!combatantEntity.isEntityAlive())
 				continue;
 			
-			synchronized(ModMain.bss.attackingLock)
+			synchronized(BattleSystemServer.attackingLock)
 			{
 				if(combatant.isPlayer)
 				{
@@ -361,12 +359,12 @@ public class Battle{
 					if(missCheck(combatant, combatants.get(combatant.target)))
 					{
 						name = combatantEntity.getName();
-						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
+						name = ScorePlayerTeam.formatPlayerName(combatantEntity.world.getScoreboard().getPlayersTeam(name), name);
 
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
 							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
 					}
@@ -375,12 +373,12 @@ public class Battle{
 						targetEntity.hurtResistantTime = 0;
 
 						name = combatantEntity.getName();
-						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
+						name = ScorePlayerTeam.formatPlayerName(combatantEntity.world.getScoreboard().getPlayersTeam(name), name);
 
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
 							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
 						if(criticalCheck(combatant))
@@ -391,9 +389,9 @@ public class Battle{
 						}
 						else
 							notifyPlayersWithMessage(name + " attacks " + targetName + "!");
-						ModMain.bss.attackingEntity = combatantEntity;
+						BattleSystemServer.attackingEntity = combatantEntity;
 						((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
-						ModMain.bss.attackingEntity = null;
+						BattleSystemServer.attackingEntity = null;
 					}
 				}
 				else if(combatantEntity instanceof EntityMob || combatantEntity instanceof EntityGolem)
@@ -416,7 +414,7 @@ public class Battle{
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
 							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
 						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
@@ -430,18 +428,18 @@ public class Battle{
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
 							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
 						notifyPlayersWithMessage(name + " attacks " + targetName + "!");
-						ModMain.bss.attackingEntity = combatantEntity;
+						BattleSystemServer.attackingEntity = combatantEntity;
 						(combatantEntity).attackEntityAsMob(targetEntity);
-						ModMain.bss.attackingEntity = null;
+						BattleSystemServer.attackingEntity = null;
 					}
 				}
 				else if(combatantEntity instanceof EntitySlime)
 				{
-					targetEntity = ((EntitySlime)combatantEntity).worldObj.getClosestPlayerToEntity(combatantEntity, 16.0);
+					targetEntity = ((EntitySlime)combatantEntity).world.getClosestPlayerToEntity(combatantEntity, 16.0);
 					if(targetEntity == null || !combatants.containsKey(targetEntity.getEntityId()))
 					{
 						// select player at random, if player exists
@@ -459,7 +457,7 @@ public class Battle{
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
 							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
 						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
@@ -473,13 +471,13 @@ public class Battle{
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
 							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
 						notifyPlayersWithMessage(name + " attacks " + targetName + "!");
-						ModMain.bss.attackingEntity = combatantEntity;
+						BattleSystemServer.attackingEntity = combatantEntity;
 						((EntitySlime)combatantEntity).onCollideWithPlayer((EntityPlayer)targetEntity);
-						ModMain.bss.attackingEntity = null;
+						BattleSystemServer.attackingEntity = null;
 					}
 				}
 				else
@@ -489,9 +487,9 @@ public class Battle{
 				{
 					notifyPlayersWithMessage(targetName + " countered " + name + "!");
 					targetEntity.hurtResistantTime = 0;
-					ModMain.bss.attackingEntity = targetEntity;
+					BattleSystemServer.attackingEntity = targetEntity;
 					((EntityPlayer)targetEntity).attackTargetEntityWithCurrentItem(combatant.entityReference);
-					ModMain.bss.attackingEntity = null;
+					BattleSystemServer.attackingEntity = null;
 				}
 				
 			}
@@ -728,7 +726,7 @@ public class Battle{
 	
 	private CombatantInfo getRandomPlayerTarget(CombatantInfo combatant, CombatantInfo[] combatantArray)
 	{
-		int randomValue = ModMain.bss.random.nextInt(combatantArray.length);
+		int randomValue = BattleSystemServer.random.nextInt(combatantArray.length);
 		CombatantInfo returnValue = null;
 		int loopIter = 0;
 		while(returnValue == null)

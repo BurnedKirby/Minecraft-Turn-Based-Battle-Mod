@@ -60,7 +60,7 @@ public class BattleCommandPacket implements IMessage {
 		public IMessage onMessage(BattleCommandPacket message,
 				MessageContext ctx) {
 			final BattleCommandPacket mes = message;
-			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().playerEntity.worldObj;
+			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().playerEntity.world;
 			mainThread.addScheduledTask(new Runnable() {
 				@Override
 				public void run() {

@@ -3,7 +3,6 @@ package burnedkirby.TurnBasedMinecraft;
 import burnedkirby.TurnBasedMinecraft.core.Utility;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -18,41 +17,40 @@ public class BattleEventListener {
 	@SubscribeEvent
 	public void entityAttacked(LivingAttackEvent event)
 	{
-		if(event.entity.worldObj.isRemote)
+		if(event.getEntity().world.isRemote)
+			return;
+		if(!(event.getSource().getEntity() instanceof EntityLivingBase) || !(event.getEntity() instanceof EntityLivingBase))
 			return;
 		
-		if(!(event.source.getEntity() instanceof EntityLivingBase) || !(event.entity instanceof EntityLivingBase))
-			return;
-		
-		if(event.entity == event.source.getEntity())
+		if(event.getEntity() == event.getSource().getEntity())
 			return;
 		
 		String sName = null;
 		String name = null;
 		
-		if((sName = EntityList.getEntityString(event.source.getEntity())) == null)
-			sName = event.source.getEntity().getName();
+		if((sName = EntityList.getEntityString(event.getSource().getEntity())) == null)
+			sName = event.getSource().getEntity().getName();
 
-		if((name = EntityList.getEntityString(event.entity)) == null)
-			name = event.entity.getName();
+		if((name = EntityList.getEntityString(event.getEntity())) == null)
+			name = event.getEntity().getName();
 		
-		Utility.log(sName + "(" + event.source.getEntity().getEntityId()
-				+ ") hit " + name + "(" + event.entity.getEntityId() + ").");
+		Utility.log(sName + "(" + event.getSource().getEntity().getEntityId()
+				+ ") hit " + name + "(" + event.getEntity().getEntityId() + ").");
 		
-		if(ModMain.bss.attackingEntity == null)
+		if(BattleSystemServer.attackingEntity == null)
 			name = "null";
 		else
 		{
-			if((name = EntityList.getEntityString(ModMain.bss.attackingEntity)) == null)
-				name = ModMain.bss.attackingEntity.getName();
+			if((name = EntityList.getEntityString(BattleSystemServer.attackingEntity)) == null)
+				name = BattleSystemServer.attackingEntity.getName();
 		}
 		
 		Utility.log("Battle Attacker is currently " + name);
 
-		if(ModMain.bss.manageCombatants((EntityLivingBase)event.source.getEntity(), (EntityLivingBase)event.entity))
+		if(ModMain.bss.manageCombatants((EntityLivingBase)event.getSource().getEntity(), (EntityLivingBase)event.getEntity()))
 			event.setCanceled(true);
-//		else if(ModMain.bss.isInBattle(event.source.getEntity().entityId) && ModMain.bss.isInBattle(event.entity.entityId))
-//			if(!Battle.playerAttacking && !(event.source.getEntity() instanceof EntityPlayer)) //TODO go over this again
+//		else if(ModMain.bss.isInBattle(event.getSource().getEntity().entityId) && ModMain.bss.isInBattle(event.getEntity().entityId))
+//			if(!Battle.playerAttacking && !(event.getSource().getEntity() instanceof EntityPlayer)) //TODO go over this again
 //				event.setCanceled(true);
 	}
 }

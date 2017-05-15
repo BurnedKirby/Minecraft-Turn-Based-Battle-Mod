@@ -11,6 +11,7 @@ import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
@@ -28,9 +29,9 @@ import burnedkirby.TurnBasedMinecraft.core.network.InitiateBattlePacket;
 @Mod(modid=ModMain.modid,name="BurnedKirby's Turn-Based Minecraft",version=ModMain.versionNumber)
 public class ModMain {
 	
-	public static final String modid = "mod_BurnedKirbyTurnBasedMinecraft";
+	public static final String modid = "mod_burnedkirby_turnbasedminecraft";
 	
-	public static final String versionNumber = "0.3.4";
+	public static final String versionNumber = "0.3.5";
 	
 	@Instance("BurnedKirbyTurnBasedBattleSystem")
 	public static ModMain instance = new ModMain();
@@ -66,7 +67,11 @@ public class ModMain {
 	
 	@EventHandler
 	public void initialize(FMLPostInitializationEvent event){
-
+	}
+	
+	@EventHandler
+	public void getServerInstance(FMLServerAboutToStartEvent event){
+		bss.setServerInstance(event.getServer());
 	}
 	
 	@EventHandler

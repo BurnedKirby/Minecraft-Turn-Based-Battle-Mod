@@ -219,7 +219,7 @@ public class BattleGui extends GuiScreen {
 	private void drawCombatant(CombatantInfo combatant, int x, int y, int color)
 	{
 		int nameLength = Minecraft.getMinecraft().fontRendererObj.getStringWidth(combatant.name);
-		String name = ScorePlayerTeam.formatPlayerName(Minecraft.getMinecraft().theWorld.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
+		String name = ScorePlayerTeam.formatPlayerName(Minecraft.getMinecraft().world.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 		if(combatantButton)
 		{
 			if(!combatantButtonPopulated)
@@ -366,7 +366,7 @@ public class BattleGui extends GuiScreen {
 			break;
 		case 6: //change weapon
 			short itemStackID = ((ItemSelectionButton)button).getItemStackID();
-			Minecraft.getMinecraft().thePlayer.inventory.currentItem = itemStackID;
+			Minecraft.getMinecraft().player.inventory.currentItem = itemStackID;
 			
 			player.type = Type.CHANGE_WEAPON;
 			player.target = player.id;

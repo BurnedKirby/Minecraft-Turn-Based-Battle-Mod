@@ -43,7 +43,7 @@ public class BattleQueryPacket implements IMessage {
 		public IMessage onMessage(BattleQueryPacket message, MessageContext ctx) {
 			final BattleQueryPacket mes = message;
 			final MessageContext context = ctx;
-			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().playerEntity.worldObj;
+			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().playerEntity.world;
 			mainThread.addScheduledTask(new Runnable() {
 				@Override
 				public void run() {

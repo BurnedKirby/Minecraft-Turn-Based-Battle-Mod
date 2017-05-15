@@ -2,7 +2,7 @@ package burnedkirby.TurnBasedMinecraft;
 
 import net.minecraft.entity.EntityLivingBase;
 
-public class CombatantInfo implements Comparable{
+public class CombatantInfo implements Comparable<Object>{
 	
 	public enum Type {
 		DO_NOTHING, ATTACK, FLEE, CHANGE_WEAPON, DODGE_COUNTER

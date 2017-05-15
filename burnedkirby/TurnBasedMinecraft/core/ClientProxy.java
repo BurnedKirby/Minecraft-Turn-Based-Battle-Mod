@@ -1,12 +1,8 @@
 package burnedkirby.TurnBasedMinecraft.core;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
-import net.minecraft.client.Minecraft;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo;
 import burnedkirby.TurnBasedMinecraft.gui.BattleGui;
+import net.minecraft.client.Minecraft;
 
 public class ClientProxy extends CommonProxy {
 
