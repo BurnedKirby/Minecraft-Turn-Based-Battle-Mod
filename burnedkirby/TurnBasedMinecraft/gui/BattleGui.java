@@ -6,10 +6,13 @@ import java.util.TreeMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
 import burnedkirby.TurnBasedMinecraft.ModMain;
+import burnedkirby.TurnBasedMinecraft.core.Utility;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleCommandPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleQueryPacket;
 
@@ -147,17 +150,16 @@ public class BattleGui extends GuiScreen {
 	 */
 	@Override
 	public void drawScreen(int par1, int par2, float par3) {
-		//drawRect(0, 0, width, height*5/6, 0xa0000000 | bgColor);
-		drawRect(0, 0, width, height, 0xa0000000 | bgColor);
+		//drawRect(0, 0, width, height, 0x30000000 | bgColor);
 		
 		drawCombatants();
 
 		super.drawScreen(par1, par2, par3);
 		
 		if(info[0] != "")
-			Minecraft.getMinecraft().fontRendererObj.drawString(info[0], width/2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(info[0])/2, height - 90, 0xffffffff);
+			Minecraft.getMinecraft().fontRenderer.drawString(info[0], width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[0])/2, height - 90, 0xffffffff);
 		if(info[1] != "")
-			Minecraft.getMinecraft().fontRendererObj.drawString(info[1], width/2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(info[1])/2, height - 80, 0xffffffff);
+			Minecraft.getMinecraft().fontRenderer.drawString(info[1], width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(info[1])/2, height - 80, 0xffffffff);
 		
 		if(!turnChoiceSent)
 		{
@@ -171,7 +173,7 @@ public class BattleGui extends GuiScreen {
 			
 			String timerString = "Time left: " + formatString + (timer / 2);
 			
-			Minecraft.getMinecraft().fontRendererObj.drawString(timerString, width/2 - Minecraft.getMinecraft().fontRendererObj.getStringWidth(timerString)/2, 10, 0xffffffff);
+			Minecraft.getMinecraft().fontRenderer.drawString(timerString, width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(timerString)/2, 10, 0xffffffff);
 		}
 		
 		updateTick--;
@@ -187,7 +189,7 @@ public class BattleGui extends GuiScreen {
 	 */
 	public void drawCombatants()
 	{
-		int x, y1 = height/5, y2 = height/5;
+		int x, y1 = height/8, y2 = height/8;
 		for(CombatantInfo combatant : combatants.values())
 		{
 			if(combatant.isSideOne)
@@ -218,7 +220,7 @@ public class BattleGui extends GuiScreen {
 	 */
 	private void drawCombatant(CombatantInfo combatant, int x, int y, int color)
 	{
-		int nameLength = Minecraft.getMinecraft().fontRendererObj.getStringWidth(combatant.name);
+		int nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(combatant.name);
 		String name = ScorePlayerTeam.formatPlayerName(Minecraft.getMinecraft().world.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 		if(combatantButton)
 		{
@@ -229,7 +231,7 @@ public class BattleGui extends GuiScreen {
 		}
 		else
 		{
-			Minecraft.getMinecraft().fontRendererObj.drawString(name, x - nameLength/2, y, color);
+			Minecraft.getMinecraft().fontRenderer.drawString(name, x - nameLength/2, y, color);
 		}
 		
 		//Draw Health
@@ -292,16 +294,17 @@ public class BattleGui extends GuiScreen {
 			break;
 		case 0: //Main menu
 			info[0] = "What will you do?";
-			buttonList.add(new GuiButton(1, width*2/6 - 40, height - 40, 80, 20, "Fight"));
-			buttonList.add(new GuiButton(2, width*4/6 - 40, height - 40, 80, 20, "Flee"));
+			buttonList.add(new GuiButton(1, width*2/6 - 40, height - 120, 80, 20, "Fight"));
+			buttonList.add(new GuiButton(2, width*4/6 - 40, height - 120, 80, 20, "Flee"));
 			break;
 		case 1: //Fight menu
 			info[0] = "What will you do?";
-			buttonList.add(new GuiButton(3, width/6 - 40, height - 72, 80, 20, "Attack"));
+			buttonList.add(new GuiButton(3, width/5 - 42, height - 72, 84, 20, "Attack"));
 			//controlList.add(new GuiButton(5, width*2/5 - 40, height - 72, 80, 20, "Use Item"));
-			buttonList.add(new GuiButton(7, width*2/5 - 40, height - 72, 80, 20, "Dodge/Counter"));
-			buttonList.add(new GuiButton(4, width*3/5 - 40, height - 72, 80, 20, "Change Weapon"));
-			buttonList.add(new GuiButton(0, width*5/6 - 40, height - 72, 80, 20, "Cancel"));
+			buttonList.add(new GuiButton(7, width/5 - 42, height - 45, 84, 20, "Dodge/Counter"));
+			buttonList.add(new GuiButton(4, width*2/5 - 42, height - 72, 84, 20, "Change Weapon"));
+			buttonList.add(new GuiButton(9, width*3/5 - 42, height - 72, 84, 20, "Use Item (Heal)"));
+			buttonList.add(new GuiButton(0, width*4/5 - 42, height - 72, 84, 20, "Cancel"));
 			break;
 		case 2: //Flee status
 			info[0] = "You attempt to flee!";
@@ -332,6 +335,13 @@ public class BattleGui extends GuiScreen {
 		case 8:
 			info[0] = "You prepare to counter that combatant!";
 			info[1] = "Waiting for server...";
+		case 9: // pick heal item
+			info[0] = "Which item will you consume?";
+			for(short i = 0; i < 9; ++i)
+			{
+				buttonList.add(new ItemSelectionButton(10, width/2 - 88 + i * 20, height - 19, 16, 16, "", i));
+			}
+			buttonList.add(new GuiButton(0, width/2 - 40, height - 40, 80, 20, "Cancel"));
 		default:
 			break;
 		}
@@ -381,6 +391,13 @@ public class BattleGui extends GuiScreen {
 		case 8: //dodge/counter
 			player.target = ((IDSelectionButton)button).entityID;
 			player.type = Type.DODGE_COUNTER;
+			ModMain.network.sendToServer(new BattleCommandPacket(battleID, player));
+			turnChoiceSent = true;
+			break;
+		case 10: // picked heal item
+			player.type = Type.ATTEMPT_HEAL;
+			player.target = player.id;
+			player.useItemID = ((ItemSelectionButton)button).getItemStackID();
 			ModMain.network.sendToServer(new BattleCommandPacket(battleID, player));
 			turnChoiceSent = true;
 			break;

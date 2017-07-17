@@ -40,6 +40,7 @@ public class BattleCommandPacket implements IMessage {
 		combatant.ready = buf.readBoolean();
 		combatant.type = Type.values()[buf.readInt()];
 		combatant.target = buf.readInt();
+		combatant.useItemID = buf.readShort();
 	}
 
 	@Override
@@ -52,6 +53,7 @@ public class BattleCommandPacket implements IMessage {
 		buf.writeBoolean(combatant.ready);
 		buf.writeInt(combatant.type.ordinal());
 		buf.writeInt(combatant.target);
+		buf.writeShort(combatant.useItemID);
 	}
 
 	public static class Handler implements IMessageHandler<BattleCommandPacket, IMessage>
@@ -60,7 +62,7 @@ public class BattleCommandPacket implements IMessage {
 		public IMessage onMessage(BattleCommandPacket message,
 				MessageContext ctx) {
 			final BattleCommandPacket mes = message;
-			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().playerEntity.world;
+			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().player.world;
 			mainThread.addScheduledTask(new Runnable() {
 				@Override
 				public void run() {

@@ -22,6 +22,10 @@ import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemFood;
+import net.minecraft.item.ItemPotion;
+import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 
 public class Battle{
@@ -492,6 +496,34 @@ public class Battle{
 					BattleSystemServer.attackingEntity = null;
 				}
 				
+			}
+		}
+		
+		// combatant heal phase
+		for(int i = 0; i < combatantArray.length; ++i)
+		{
+			if(combatantArray[i].type != Type.ATTEMPT_HEAL
+					|| !combatantArray[i].isPlayer)
+			{
+				continue;
+			}
+			
+			ItemStack targetItemStack = ((EntityPlayer)combatantArray[i].entityReference).inventory.getStackInSlot(combatantArray[i].useItemID);
+			Item targetItem = targetItemStack.getItem();
+			String targetItemName = targetItemStack.getDisplayName();
+			if(targetItem instanceof ItemFood)
+			{
+				((ItemFood)targetItem).onItemUseFinish(targetItemStack, combatantArray[i].entityReference.world, combatantArray[i].entityReference);
+				notifyPlayersWithMessage(combatantArray[i].entityReference.getName() + " ate a " + targetItemName + "!");
+			}
+			else if(targetItem instanceof ItemPotion)
+			{
+				((ItemPotion)targetItem).onItemUseFinish(targetItemStack, combatantArray[i].entityReference.world, combatantArray[i].entityReference);
+				notifyPlayersWithMessage(combatantArray[i].entityReference.getName() + " consumed a " + targetItemName + "!");
+			}
+			else
+			{
+				notifyPlayersWithMessage(combatantArray[i].entityReference.getName() + " tried to eat a " + targetItemName + " but failed!");
 			}
 		}
 		

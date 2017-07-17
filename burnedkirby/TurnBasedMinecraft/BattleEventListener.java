@@ -19,22 +19,22 @@ public class BattleEventListener {
 	{
 		if(event.getEntity().world.isRemote)
 			return;
-		if(!(event.getSource().getEntity() instanceof EntityLivingBase) || !(event.getEntity() instanceof EntityLivingBase))
+		if(!(event.getSource().getTrueSource() instanceof EntityLivingBase) || !(event.getEntity() instanceof EntityLivingBase))
 			return;
 		
-		if(event.getEntity() == event.getSource().getEntity())
+		if(event.getEntity() == event.getSource().getTrueSource())
 			return;
 		
 		String sName = null;
 		String name = null;
 		
-		if((sName = EntityList.getEntityString(event.getSource().getEntity())) == null)
-			sName = event.getSource().getEntity().getName();
+		if((sName = EntityList.getEntityString(event.getSource().getTrueSource())) == null)
+			sName = event.getSource().getTrueSource().getName();
 
 		if((name = EntityList.getEntityString(event.getEntity())) == null)
 			name = event.getEntity().getName();
 		
-		Utility.log(sName + "(" + event.getSource().getEntity().getEntityId()
+		Utility.log(sName + "(" + event.getSource().getTrueSource().getEntityId()
 				+ ") hit " + name + "(" + event.getEntity().getEntityId() + ").");
 		
 		if(BattleSystemServer.attackingEntity == null)
@@ -47,7 +47,7 @@ public class BattleEventListener {
 		
 		Utility.log("Battle Attacker is currently " + name);
 
-		if(ModMain.bss.manageCombatants((EntityLivingBase)event.getSource().getEntity(), (EntityLivingBase)event.getEntity()))
+		if(ModMain.bss.manageCombatants((EntityLivingBase)event.getSource().getTrueSource(), (EntityLivingBase)event.getEntity()))
 			event.setCanceled(true);
 //		else if(ModMain.bss.isInBattle(event.getSource().getEntity().entityId) && ModMain.bss.isInBattle(event.getEntity().entityId))
 //			if(!Battle.playerAttacking && !(event.getSource().getEntity() instanceof EntityPlayer)) //TODO go over this again

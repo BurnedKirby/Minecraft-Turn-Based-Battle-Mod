@@ -5,7 +5,7 @@ import net.minecraft.entity.EntityLivingBase;
 public class CombatantInfo implements Comparable<Object>{
 	
 	public enum Type {
-		DO_NOTHING, ATTACK, FLEE, CHANGE_WEAPON, DODGE_COUNTER
+		DO_NOTHING, ATTACK, FLEE, CHANGE_WEAPON, DODGE_COUNTER, ATTEMPT_HEAL
 	}
 	
 	public boolean isPlayer;
@@ -25,6 +25,8 @@ public class CombatantInfo implements Comparable<Object>{
 	
 	public short turnTickTimer;
 	
+	public short useItemID;
+
 	/**
 	 * All values are percentages.
 	 * 
@@ -111,6 +113,7 @@ public class CombatantInfo implements Comparable<Object>{
 		ready = newInfo.ready;
 		target = newInfo.target;
 		type = newInfo.type;
+		useItemID = newInfo.useItemID;
 		return true;
 	}
 	

@@ -217,7 +217,7 @@ public class BattleSystemServer {
 				attackedName = entityAttacked.getName();
 			
 			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.getEntityId(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.getEntityId()));
-			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.getEntityId(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacked.getAITarget() != null ? entityAttacked.getAITarget().getEntityId() : 0));
+			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.getEntityId(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacker.getEntityId()));
 			synchronized(battles)
 			{
 				battles.put(battleIDCounter,new Battle(battleIDCounter, combatants, silly));
