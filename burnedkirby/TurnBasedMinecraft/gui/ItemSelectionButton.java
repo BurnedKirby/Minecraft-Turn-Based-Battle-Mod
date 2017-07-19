@@ -19,13 +19,13 @@ public class ItemSelectionButton extends GuiButton {
 	}
 	
 	@Override
-	public void drawButton(Minecraft par1Minecraft, int mouseX, int mouseY, float partialTicks) {
+	public void drawButton(Minecraft par1Minecraft, int mouseX, int mouseY) {
 		if(this.visible)
 		{
-			this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
-			if(this.hovered) //If mouse is hovering over button
+			this.field_146123_n = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
+			if(this.field_146123_n) //If mouse is hovering over button
 			{
-				drawRect(this.x, this.y, this.x + this.width, this.y + this.height, 0x80ffffff);
+				drawRect(this.xPosition, this.yPosition, this.xPosition + this.width, this.yPosition + this.height, 0x80ffffff);
 			}
 		}
 	}

@@ -112,7 +112,7 @@ public class Battle{
 			}
 			
 			notifyPlayers(true);
-			String name = ScorePlayerTeam.formatPlayerName(newCombatant.entityReference.world.getScoreboard().getPlayersTeam(newCombatant.name), newCombatant.name);
+			String name = ScorePlayerTeam.formatPlayerName(newCombatant.entityReference.worldObj.getScoreboard().getPlayersTeam(newCombatant.name), newCombatant.name);
 			notifyPlayersWithMessage(name + " has entered battle!");
 		}
 		else
@@ -231,7 +231,7 @@ public class Battle{
 			CombatantInfo combatant = newCombatantQueue.pop();
 			combatants.put(combatant.id, combatant);
 			ModMain.bss.inBattle.add(combatant);
-			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.world.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
+			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.worldObj.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 			notifyPlayersWithMessage(name + " has entered battle!");
 		}
 		
@@ -330,7 +330,7 @@ public class Battle{
 		while(!messageQueue.isEmpty())
 		{
 			combatant = messageQueue.pop();
-			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.world.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
+			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.worldObj.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 			notifyPlayersWithMessage(name + " has fled battle!");
 		}
 		
@@ -362,13 +362,16 @@ public class Battle{
 					
 					if(missCheck(combatant, combatants.get(combatant.target)))
 					{
-						name = combatantEntity.getName();
-						name = ScorePlayerTeam.formatPlayerName(combatantEntity.world.getScoreboard().getPlayersTeam(name), name);
+						name = ((EntityPlayer)combatantEntity).getDisplayName();
+						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
 
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
+							if(targetEntity instanceof EntityPlayer)
+							{
+								targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							}
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
 					}
@@ -376,13 +379,16 @@ public class Battle{
 					{
 						targetEntity.hurtResistantTime = 0;
 
-						name = combatantEntity.getName();
-						name = ScorePlayerTeam.formatPlayerName(combatantEntity.world.getScoreboard().getPlayersTeam(name), name);
+						name = ((EntityPlayer)combatantEntity).getDisplayName();
+						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
 
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
+							if(targetEntity instanceof EntityPlayer)
+							{
+								targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							}
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
 						if(criticalCheck(combatant))
@@ -407,7 +413,12 @@ public class Battle{
 					if(targetEntity == null)
 						continue;
 					else if((targetName = EntityList.getEntityString(targetEntity)) == null)
-						targetName = targetEntity.getName();
+					{
+						if(targetEntity instanceof EntityPlayer)
+						{
+							targetName = ((EntityPlayer)targetEntity).getDisplayName();
+						}
+					}
 					
 					Utility.log(EntityList.getEntityString(combatantEntity) + " targeting " + (targetEntity != null ? targetName : "null"));
 					
@@ -417,8 +428,11 @@ public class Battle{
 						
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
+							if(targetEntity instanceof EntityPlayer)
+							{
+								targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							}
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
 						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
@@ -431,8 +445,11 @@ public class Battle{
 						
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
+							if(targetEntity instanceof EntityPlayer)
+							{
+								targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							}
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
 						notifyPlayersWithMessage(name + " attacks " + targetName + "!");
@@ -443,7 +460,7 @@ public class Battle{
 				}
 				else if(combatantEntity instanceof EntitySlime)
 				{
-					targetEntity = ((EntitySlime)combatantEntity).world.getClosestPlayerToEntity(combatantEntity, 16.0);
+					targetEntity = ((EntitySlime)combatantEntity).worldObj.getClosestPlayerToEntity(combatantEntity, 16.0);
 					if(targetEntity == null || !combatants.containsKey(targetEntity.getEntityId()))
 					{
 						// select player at random, if player exists
@@ -460,8 +477,11 @@ public class Battle{
 						
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
+							if(targetEntity instanceof EntityPlayer)
+							{
+								targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							}
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
 						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
@@ -474,8 +494,11 @@ public class Battle{
 						
 						if((targetName = EntityList.getEntityString(targetEntity)) == null)
 						{
-							targetName = targetEntity.getName();
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.world.getScoreboard().getPlayersTeam(targetName), targetName);
+							if(targetEntity instanceof EntityPlayer)
+							{
+								targetName = ((EntityPlayer)targetEntity).getDisplayName();
+							}
+							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 						}
 						
 						notifyPlayersWithMessage(name + " attacks " + targetName + "!");
@@ -509,21 +532,33 @@ public class Battle{
 			}
 			
 			ItemStack targetItemStack = ((EntityPlayer)combatantArray[i].entityReference).inventory.getStackInSlot(combatantArray[i].useItemID);
-			Item targetItem = targetItemStack.getItem();
-			String targetItemName = targetItemStack.getDisplayName();
-			if(targetItem instanceof ItemFood)
+			if(targetItemStack != null)
 			{
-				((ItemFood)targetItem).onItemUseFinish(targetItemStack, combatantArray[i].entityReference.world, combatantArray[i].entityReference);
-				notifyPlayersWithMessage(combatantArray[i].entityReference.getName() + " ate a " + targetItemName + "!");
-			}
-			else if(targetItem instanceof ItemPotion)
-			{
-				((ItemPotion)targetItem).onItemUseFinish(targetItemStack, combatantArray[i].entityReference.world, combatantArray[i].entityReference);
-				notifyPlayersWithMessage(combatantArray[i].entityReference.getName() + " consumed a " + targetItemName + "!");
+				Item targetItem = targetItemStack.getItem();
+				String targetItemName = targetItemStack.getDisplayName();
+				boolean isLast = targetItemStack.stackSize == 1;
+				if(targetItem instanceof ItemFood)
+				{
+					((ItemFood)targetItem).onEaten(targetItemStack, combatantArray[i].entityReference.worldObj, (EntityPlayer) combatantArray[i].entityReference);
+					notifyPlayersWithMessage(((EntityPlayer)combatantArray[i].entityReference).getDisplayName() + " ate a " + targetItemName + "!");
+				}
+				else if(targetItem instanceof ItemPotion)
+				{
+					((ItemPotion)targetItem).onEaten(targetItemStack, combatantArray[i].entityReference.worldObj, (EntityPlayer) combatantArray[i].entityReference);
+					notifyPlayersWithMessage(((EntityPlayer)combatantArray[i].entityReference).getDisplayName() + " consumed a " + targetItemName + "!");
+				}
+				else
+				{
+					notifyPlayersWithMessage(((EntityPlayer)combatantArray[i].entityReference).getDisplayName() + " tried to eat a " + targetItemName + " but failed!");
+				}
+				if(isLast)
+				{
+					((EntityPlayer)combatantArray[i].entityReference).inventory.setInventorySlotContents(combatantArray[i].useItemID, null);
+				}
 			}
 			else
 			{
-				notifyPlayersWithMessage(combatantArray[i].entityReference.getName() + " tried to eat a " + targetItemName + " but failed!");
+				notifyPlayersWithMessage(((EntityPlayer)combatantArray[i].entityReference).getDisplayName() + " tried to eat nothing but failed!");
 			}
 		}
 		

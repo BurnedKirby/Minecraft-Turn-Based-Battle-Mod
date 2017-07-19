@@ -2,11 +2,10 @@ package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.IThreadListener;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo;
 import burnedkirby.TurnBasedMinecraft.ModMain;
 
@@ -56,14 +55,14 @@ public class InitiateBattlePacket implements IMessage {
 		@Override
 		public IMessage onMessage(InitiateBattlePacket message,
 				MessageContext ctx) {
-			final InitiateBattlePacket mes = message;
-			IThreadListener mainThread = Minecraft.getMinecraft();
-			mainThread.addScheduledTask(new Runnable() {
-				@Override
-				public void run() {
-					ModMain.proxy.newGui(mes.battleID, mes.player, mes.silly);
-				}
-			});
+//			final InitiateBattlePacket mes = message;
+//			IThreadListener mainThread = Minecraft.getMinecraft();
+//			mainThread.addScheduledTask(new Runnable() {
+//				@Override
+//				public void run() {
+					ModMain.proxy.newGui(message.battleID, message.player, message.silly);
+//				}
+//			});
 			return null;
 		}
 	}

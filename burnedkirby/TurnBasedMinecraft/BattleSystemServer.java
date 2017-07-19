@@ -9,53 +9,37 @@ import java.util.Stack;
 import java.util.TreeMap;
 
 import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.monster.EntityBlaze;
 import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.entity.monster.EntityCreeper;
-import net.minecraft.entity.monster.EntityElderGuardian;
 import net.minecraft.entity.monster.EntityEnderman;
-import net.minecraft.entity.monster.EntityEndermite;
-import net.minecraft.entity.monster.EntityEvoker;
 import net.minecraft.entity.monster.EntityGhast;
 import net.minecraft.entity.monster.EntityGiantZombie;
-import net.minecraft.entity.monster.EntityHusk;
 import net.minecraft.entity.monster.EntityIronGolem;
 import net.minecraft.entity.monster.EntityMagmaCube;
 import net.minecraft.entity.monster.EntityPigZombie;
-import net.minecraft.entity.monster.EntityPolarBear;
-import net.minecraft.entity.monster.EntityShulker;
 import net.minecraft.entity.monster.EntitySilverfish;
 import net.minecraft.entity.monster.EntitySkeleton;
 import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.monster.EntitySnowman;
 import net.minecraft.entity.monster.EntitySpider;
-import net.minecraft.entity.monster.EntityStray;
-import net.minecraft.entity.monster.EntityVex;
-import net.minecraft.entity.monster.EntityVindicator;
 import net.minecraft.entity.monster.EntityWitch;
-import net.minecraft.entity.monster.EntityWitherSkeleton;
 import net.minecraft.entity.monster.EntityZombie;
-import net.minecraft.entity.monster.EntityZombieVillager;
 import net.minecraft.entity.passive.EntityBat;
 import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.entity.passive.EntityCow;
-import net.minecraft.entity.passive.EntityDonkey;
 import net.minecraft.entity.passive.EntityHorse;
-import net.minecraft.entity.passive.EntityLlama;
 import net.minecraft.entity.passive.EntityMooshroom;
-import net.minecraft.entity.passive.EntityMule;
 import net.minecraft.entity.passive.EntityOcelot;
 import net.minecraft.entity.passive.EntityPig;
-import net.minecraft.entity.passive.EntityRabbit;
 import net.minecraft.entity.passive.EntitySheep;
-import net.minecraft.entity.passive.EntitySkeletonHorse;
 import net.minecraft.entity.passive.EntitySquid;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.passive.EntityWolf;
-import net.minecraft.entity.passive.EntityZombieHorse;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
@@ -206,15 +190,25 @@ public class BattleSystemServer {
 			String attackerName = null;
 			String attackedName = null;
 			
-			if(entityAttacker.hasCustomName())
-				attackerName = entityAttacker.getCustomNameTag();
+			if(entityAttacker instanceof EntityLiving && ((EntityLiving)entityAttacker).hasCustomNameTag())
+				attackerName = ((EntityLiving)entityAttacker).getCustomNameTag();
 			else if((attackerName = EntityList.getEntityString(entityAttacker)) == null)
-				attackerName = entityAttacker.getName();
+			{
+				if(entityAttacker instanceof EntityPlayer)
+				{
+					attackerName = ((EntityPlayer)entityAttacker).getDisplayName();
+				}
+			}
 
-			if(entityAttacked.hasCustomName())
-				attackedName = entityAttacked.getCustomNameTag();
+			if(entityAttacked instanceof EntityLiving && ((EntityLiving)entityAttacked).hasCustomNameTag())
+				attackedName = ((EntityLiving)entityAttacked).getCustomNameTag();
 			else if((attackedName = EntityList.getEntityString(entityAttacked)) == null)
-				attackedName = entityAttacked.getName();
+			{
+				if(entityAttacked instanceof EntityPlayer)
+				{
+					attackedName = ((EntityPlayer)entityAttacked).getDisplayName();
+				}
+			}
 			
 			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.getEntityId(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.getEntityId()));
 			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.getEntityId(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacker.getEntityId()));
@@ -257,10 +251,15 @@ public class BattleSystemServer {
 					break;
 				}
 				
-				if(newCombatant.hasCustomName())
-					newName = newCombatant.getCustomNameTag();
+				if(newCombatant instanceof EntityLiving && ((EntityLiving)newCombatant).hasCustomNameTag())
+					newName = ((EntityLiving)newCombatant).getCustomNameTag();
 				else if((newName = EntityList.getEntityString(newCombatant)) == null)
-					newName = newCombatant.getName();
+				{
+					if(newCombatant instanceof EntityPlayer)
+					{
+						newName = ((EntityPlayer)newCombatant).getDisplayName();
+					}
+				}
 				
 				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.getEntityId(), newCombatant, isSideOne, newName, false, Type.DO_NOTHING, inBattleCombatant.getEntityId()));
 			}
@@ -467,14 +466,6 @@ public class BattleSystemServer {
 			return true;
 		else if(entity instanceof EntitySlime)
 			return true;
-		else if(entity instanceof EntityDonkey)
-			return true;
-		else if(entity instanceof EntityLlama)
-			return true;
-		else if(entity instanceof EntityMule)
-			return true;
-		else if(entity instanceof EntityRabbit)
-			return true;
 		
 		return false;
 			
@@ -528,8 +519,6 @@ public class BattleSystemServer {
 			return ignoreSystemEntityMap.get("Silverfish");
 		else if(entity instanceof EntitySkeleton)
 				return ignoreSystemEntityMap.get("Skeleton");
-		else if(entity instanceof EntityWitherSkeleton)
-			return ignoreSystemEntityMap.get("WitherSkeleton");
 		else if(entity instanceof EntitySlime)
 			return ignoreSystemEntityMap.get("Slime");
 		else if(entity instanceof EntitySnowman)
@@ -538,44 +527,12 @@ public class BattleSystemServer {
 			return ignoreSystemEntityMap.get("Spider");
 		else if(entity instanceof EntityWitch)
 			return ignoreSystemEntityMap.get("Witch");
-		else if(entity instanceof EntityZombieVillager)
-			return ignoreSystemEntityMap.get("ZombieVillager");
 		else if(entity instanceof EntityZombie)
 			return ignoreSystemEntityMap.get("Zombie");
 		else if(entity instanceof EntityDragon)
 			return ignoreSystemEntityMap.get("Dragon");
 		else if(entity instanceof EntityWither)
 			return ignoreSystemEntityMap.get("WitherBoss");
-		else if(entity instanceof EntityDonkey)
-			return ignoreSystemEntityMap.get("Donkey");
-		else if(entity instanceof EntityLlama)
-			return ignoreSystemEntityMap.get("Llama");
-		else if(entity instanceof EntityMule)
-			return ignoreSystemEntityMap.get("EntityMule");
-		else if(entity instanceof EntityZombieHorse)
-			return ignoreSystemEntityMap.get("ZombieHorse");
-		else if(entity instanceof EntitySkeletonHorse)
-			return ignoreSystemEntityMap.get("SkeletonHorse");
-		else if(entity instanceof EntityRabbit)
-			return ignoreSystemEntityMap.get("Rabbit");
-		else if(entity instanceof EntityElderGuardian)
-			return ignoreSystemEntityMap.get("ElderGuardian");
-		else if(entity instanceof EntityEndermite)
-			return ignoreSystemEntityMap.get("Endermite");
-		else if(entity instanceof EntityEvoker)
-			return ignoreSystemEntityMap.get("Evoker");
-		else if(entity instanceof EntityVindicator)
-			return ignoreSystemEntityMap.get("Vindicator");
-		else if(entity instanceof EntityHusk)
-			return ignoreSystemEntityMap.get("Husk");
-		else if(entity instanceof EntityPolarBear)
-			return ignoreSystemEntityMap.get("PolarBear");
-		else if(entity instanceof EntityShulker)
-			return ignoreSystemEntityMap.get("Shulker");
-		else if(entity instanceof EntityStray)
-			return ignoreSystemEntityMap.get("Stray");
-		else if(entity instanceof EntityVex)
-			return ignoreSystemEntityMap.get("Vex");
 		else
 			new Exception("Tell BurnedKirby that he needs to update the mod because there are new mobs!").printStackTrace();
 		return false;

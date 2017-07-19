@@ -1,12 +1,11 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.util.IThreadListener;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
 import burnedkirby.TurnBasedMinecraft.ModMain;
@@ -61,14 +60,14 @@ public class BattleCommandPacket implements IMessage {
 		@Override
 		public IMessage onMessage(BattleCommandPacket message,
 				MessageContext ctx) {
-			final BattleCommandPacket mes = message;
-			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().player.world;
-			mainThread.addScheduledTask(new Runnable() {
-				@Override
-				public void run() {
-					ModMain.bss.managePlayerUpdate(mes.battleID, mes.combatant);
-				}
-			});
+//			final BattleCommandPacket mes = message;
+//			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().player.world;
+//			mainThread.addScheduledTask(new Runnable() {
+//				@Override
+//				public void run() {
+					ModMain.bss.managePlayerUpdate(message.battleID, message.combatant);
+//				}
+//			});
 			return null;
 		}
 	}

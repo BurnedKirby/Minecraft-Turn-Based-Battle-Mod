@@ -2,11 +2,10 @@ package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.IThreadListener;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import cpw.mods.fml.common.network.ByteBufUtils;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
 import burnedkirby.TurnBasedMinecraft.ModMain;
@@ -58,15 +57,15 @@ public class BattleCombatantPacket implements IMessage {
 		@Override
 		public IMessage onMessage(BattleCombatantPacket message,
 				MessageContext ctx) {
-			final BattleCombatantPacket mes = message;
-			IThreadListener mainThread = Minecraft.getMinecraft();
-			mainThread.addScheduledTask(new Runnable() {
-				@Override
-				public void run() {
+//			final BattleCombatantPacket mes = message;
+//			Minecraft mainThread = Minecraft.getMinecraft();
+//			mainThread.addScheduledTask(new Runnable() {
+//				@Override
+//				public void run() {
 					if(ModMain.proxy.getGui() != null)
-						((BattleGui)ModMain.proxy.getGui()).receiveCombatant(mes.combatant);
-				}
-			});
+						((BattleGui)ModMain.proxy.getGui()).receiveCombatant(message.combatant);
+//				}
+//			});
 			return null;
 		}
 	}

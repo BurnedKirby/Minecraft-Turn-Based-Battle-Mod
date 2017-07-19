@@ -1,11 +1,10 @@
 package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.util.IThreadListener;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import burnedkirby.TurnBasedMinecraft.ModMain;
 
 /**
@@ -41,15 +40,15 @@ public class BattleQueryPacket implements IMessage {
 	{
 		@Override
 		public IMessage onMessage(BattleQueryPacket message, MessageContext ctx) {
-			final BattleQueryPacket mes = message;
-			final MessageContext context = ctx;
-			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().player.world;
-			mainThread.addScheduledTask(new Runnable() {
-				@Override
-				public void run() {
-					ModMain.bss.manageQuery(mes.battleID, mes.type, context.getServerHandler().player);
-				}
-			});
+//			final BattleQueryPacket mes = message;
+//			final MessageContext context = ctx;
+//			IThreadListener mainThread = (WorldServer) ctx.getServerHandler().player.world;
+//			mainThread.addScheduledTask(new Runnable() {
+//				@Override
+//				public void run() {
+					ModMain.bss.manageQuery(message.battleID, message.type, ctx.getServerHandler().playerEntity);
+//				}
+//			});
 			return null;
 		}
 	}

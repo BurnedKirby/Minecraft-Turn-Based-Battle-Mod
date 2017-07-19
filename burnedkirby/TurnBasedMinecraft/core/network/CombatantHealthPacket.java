@@ -2,10 +2,9 @@ package burnedkirby.TurnBasedMinecraft.core.network;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.IThreadListener;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import burnedkirby.TurnBasedMinecraft.ModMain;
 import burnedkirby.TurnBasedMinecraft.gui.BattleGui;
 
@@ -40,14 +39,14 @@ public class CombatantHealthPacket implements IMessage {
 		@Override
 		public IMessage onMessage(CombatantHealthPacket message,
 				MessageContext ctx) {
-			final CombatantHealthPacket mes = message;
-			IThreadListener mainThread = Minecraft.getMinecraft();
-			mainThread.addScheduledTask(new Runnable() {
-				@Override
-				public void run() {
-					((BattleGui)ModMain.proxy.getGui()).receiveCombatantHealthInfo(mes.entityID, mes.health);
-				}
-			});
+//			final CombatantHealthPacket mes = message;
+//			IThreadListener mainThread = Minecraft.getMinecraft();
+//			mainThread.addScheduledTask(new Runnable() {
+//				@Override
+//				public void run() {
+					((BattleGui)ModMain.proxy.getGui()).receiveCombatantHealthInfo(message.entityID, message.health);
+//				}
+//			});
 			return null;
 		}
 	}
