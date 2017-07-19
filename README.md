@@ -4,11 +4,11 @@ Minecraft-Turn-Based-Battle-Mod
 A mod for Minecraft (using Minecraft Forge) that employs a turn-based battle system.
 
 
-### Mod currently compiles on Minecraft Forge 1.12-14.21.1.2387
+### Mod branch 1.7.10 currently compiles on Minecraft Forge 1.7.10-10.13.4.1558
 
 
 To use, check out the Downloads page on the wiki to get the latest compiled version of the mod as well as instructions.
-Alternatively, setup Minecraft Forge 1.12-14.21.1.2387 and place the "burnedkirby" folder in src/main/java for compiling.
+Alternatively, setup Minecraft Forge 1.7.10-10.13.4.1558 and place the "burnedkirby" folder in src/main/java for compiling.
 
 
 ### Notice: The mod will create a directory in the .minecraft folder.
