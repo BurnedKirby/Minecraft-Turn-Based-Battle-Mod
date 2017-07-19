@@ -540,20 +540,24 @@ public class Battle{
 				if(targetItem instanceof ItemFood)
 				{
 					((ItemFood)targetItem).onEaten(targetItemStack, combatantArray[i].entityReference.worldObj, (EntityPlayer) combatantArray[i].entityReference);
+					if(isLast)
+					{
+						((EntityPlayer)combatantArray[i].entityReference).inventory.setInventorySlotContents(combatantArray[i].useItemID, null);
+					}
 					notifyPlayersWithMessage(((EntityPlayer)combatantArray[i].entityReference).getDisplayName() + " ate a " + targetItemName + "!");
 				}
 				else if(targetItem instanceof ItemPotion)
 				{
 					((ItemPotion)targetItem).onEaten(targetItemStack, combatantArray[i].entityReference.worldObj, (EntityPlayer) combatantArray[i].entityReference);
+					if(isLast)
+					{
+						((EntityPlayer)combatantArray[i].entityReference).inventory.setInventorySlotContents(combatantArray[i].useItemID, null);
+					}
 					notifyPlayersWithMessage(((EntityPlayer)combatantArray[i].entityReference).getDisplayName() + " consumed a " + targetItemName + "!");
 				}
 				else
 				{
 					notifyPlayersWithMessage(((EntityPlayer)combatantArray[i].entityReference).getDisplayName() + " tried to eat a " + targetItemName + " but failed!");
-				}
-				if(isLast)
-				{
-					((EntityPlayer)combatantArray[i].entityReference).inventory.setInventorySlotContents(combatantArray[i].useItemID, null);
 				}
 			}
 			else
