@@ -2,7 +2,7 @@
     "modid": "mod_BurnedKirbyTurnBasedMinecraft",
     "name": "BurnedKirby's Turn-Based Minecraft",
     "description": "Puts RPG style turn-based combat into Minecraft!",
-    "version": "0.4.1_1.7.10_a",
+    "version": "0.4.2_1.7.10_a",
     "mcversion": "1.7.10-10.13.4.1558",
     "url": "https://github.com/BurnedKirby/Minecraft-Turn-Based-Battle-Mod",
     "authors": [ "BurnedKirby" ],
