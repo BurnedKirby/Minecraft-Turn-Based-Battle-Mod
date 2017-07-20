@@ -511,6 +511,11 @@ public class Battle{
 			ItemStack targetItemStack = ((EntityPlayer)combatantArray[i].entityReference).inventory.getStackInSlot(combatantArray[i].useItemID);
 			Item targetItem = targetItemStack.getItem();
 			String targetItemName = targetItemStack.getDisplayName();
+			if(targetItem == null)
+			{
+				Utility.log("ERROR: targetItem is null, cannot consume");
+				notifyPlayersWithMessage(combatantArray[i].entityReference.getName() + " tried to eat a " + targetItemName + " but failed!");
+			}
 			if(targetItem instanceof ItemFood)
 			{
 				((ItemFood)targetItem).onItemUseFinish(targetItemStack, combatantArray[i].entityReference.world, combatantArray[i].entityReference);

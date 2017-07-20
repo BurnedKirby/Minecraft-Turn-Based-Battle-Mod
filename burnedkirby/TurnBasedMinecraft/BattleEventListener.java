@@ -34,8 +34,8 @@ public class BattleEventListener {
 		if((name = EntityList.getEntityString(event.getEntity())) == null)
 			name = event.getEntity().getName();
 		
-		Utility.log(sName + "(" + event.getSource().getTrueSource().getEntityId()
-				+ ") hit " + name + "(" + event.getEntity().getEntityId() + ").");
+//		Utility.log(sName + "(" + event.getSource().getTrueSource().getEntityId()
+//				+ ") hit " + name + "(" + event.getEntity().getEntityId() + ").");
 		
 		if(BattleSystemServer.attackingEntity == null)
 			name = "null";
@@ -45,7 +45,7 @@ public class BattleEventListener {
 				name = BattleSystemServer.attackingEntity.getName();
 		}
 		
-		Utility.log("Battle Attacker is currently " + name);
+//		Utility.log("Battle Attacker is currently " + name);
 
 		if(ModMain.bss.manageCombatants((EntityLivingBase)event.getSource().getTrueSource(), (EntityLivingBase)event.getEntity()))
 			event.setCanceled(true);

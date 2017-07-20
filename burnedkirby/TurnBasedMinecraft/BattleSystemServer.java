@@ -188,7 +188,7 @@ public class BattleSystemServer {
 		}
 		List<Integer> justAdded;
 		
-		Utility.log("attack event status " + inBattle);
+//		Utility.log("attack event status " + inBattle);
 
 		switch(inBattle)
 		{
@@ -577,7 +577,7 @@ public class BattleSystemServer {
 		else if(entity instanceof EntityVex)
 			return ignoreSystemEntityMap.get("Vex");
 		else
-			new Exception("Tell BurnedKirby that he needs to update the mod because there are new mobs!").printStackTrace();
+			Utility.log("WARNING: Unknown mob detected, continuing...");
 		return false;
 	}
 }
