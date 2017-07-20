@@ -139,10 +139,28 @@ public class BattleGui extends GuiScreen {
 				getMenu(0);
 			}
 			else if(currentMenu == -2 && !turnChoiceSent)
+			{
 				getMenu(0);
+			}
+			else if(currentMenu == 3)
+			{
+				getMenu(3);
+				combatantButton = true;
+				combatantButtonPopulated = false;
+				counterMenu = false;
+			}
+			else if(currentMenu == 7)
+			{
+				getMenu(7);
+				combatantButton = true;
+				combatantButtonPopulated = false;
+				counterMenu = true;
+			}
 		}
-		else
+		else if(!playerPhase)
+		{
 			getMenu(-2);
+		}
 	}
 	
 	/**
