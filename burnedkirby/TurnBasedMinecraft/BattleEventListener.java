@@ -43,8 +43,8 @@ public class BattleEventListener {
 			name = ((EntityPlayer)event.entity).getDisplayName();
 		}
 		
-		Utility.log(sName + "(" + event.source.getEntity().getEntityId()
-				+ ") hit " + name + "(" + event.entity.getEntityId() + ").");
+//		Utility.log(sName + "(" + event.source.getEntity().getEntityId()
+//				+ ") hit " + name + "(" + event.entity.getEntityId() + ").");
 		
 		if(BattleSystemServer.attackingEntity == null)
 			name = "null";
@@ -59,7 +59,7 @@ public class BattleEventListener {
 			}
 		}
 		
-		Utility.log("Battle Attacker is currently " + name);
+//		Utility.log("Battle Attacker is currently " + name);
 
 		if(ModMain.bss.manageCombatants((EntityLivingBase)event.source.getEntity(), (EntityLivingBase)event.entity))
 			event.setCanceled(true);

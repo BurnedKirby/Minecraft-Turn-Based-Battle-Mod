@@ -537,7 +537,12 @@ public class Battle{
 				Item targetItem = targetItemStack.getItem();
 				String targetItemName = targetItemStack.getDisplayName();
 				boolean isLast = targetItemStack.stackSize == 1;
-				if(targetItem instanceof ItemFood)
+				if(targetItem == null)
+				{
+					Utility.log("ERROR: targetItem is null, cannot consume");
+					notifyPlayersWithMessage(((EntityPlayer)combatantArray[i].entityReference).getDisplayName() + " tried to eat a " + targetItemName + " but failed!");
+				}
+				else if(targetItem instanceof ItemFood)
 				{
 					((ItemFood)targetItem).onEaten(targetItemStack, combatantArray[i].entityReference.worldObj, (EntityPlayer) combatantArray[i].entityReference);
 					if(isLast)
