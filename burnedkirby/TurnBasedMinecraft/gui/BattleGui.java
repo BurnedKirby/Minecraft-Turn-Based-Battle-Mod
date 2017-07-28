@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.ScorePlayerTeam;
+import burnedkirby.TurnBasedMinecraft.BattleSystemServer;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo;
 import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
 import burnedkirby.TurnBasedMinecraft.ModMain;
@@ -182,14 +183,14 @@ public class BattleGui extends GuiScreen {
 		if(!turnChoiceSent)
 		{
 			String formatString = "";
-			if(timer > 14)
+			if(timer * BattleSystemServer.UPDATE_TIME_MILLISECONDS / 1000 > 7)
 				formatString = "\u00A7a";
-			else if(timer > 6)
+			else if(timer * BattleSystemServer.UPDATE_TIME_MILLISECONDS / 1000 > 3)
 				formatString = "\u00A7e";
 			else
 				formatString = "\u00A7c";
 			
-			String timerString = "Time left: " + formatString + (timer / 2);
+			String timerString = "Time left: " + formatString + (timer * BattleSystemServer.UPDATE_TIME_MILLISECONDS / 1000);
 			
 			Minecraft.getMinecraft().fontRenderer.drawString(timerString, width/2 - Minecraft.getMinecraft().fontRenderer.getStringWidth(timerString)/2, 10, 0xffffffff);
 		}
