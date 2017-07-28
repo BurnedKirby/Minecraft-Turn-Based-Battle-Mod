@@ -12,9 +12,12 @@ import burnedkirby.TurnBasedMinecraft.core.network.BattleMessagePacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.CombatantHealthPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.InitiateBattlePacket;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
+import net.minecraft.entity.monster.EntityEnderman;
 import net.minecraft.entity.monster.EntityGhast;
 import net.minecraft.entity.monster.EntityGolem;
 import net.minecraft.entity.monster.EntityMob;
@@ -22,11 +25,16 @@ import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemPotion;
 import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.MathHelper;
 
 public class Battle{
 	private Map<Integer,CombatantInfo> combatants;
@@ -47,7 +55,7 @@ public class Battle{
 	private short healthUpdateTick;
 	private final short healthUpdateTime = 4;
 	
-	private final short turnTickTime = 30;
+	private final short turnTickTime = 15 * 1000 / BattleSystemServer.UPDATE_TIME_MILLISECONDS;
 	
 	private boolean silly;
 	
@@ -196,6 +204,11 @@ public class Battle{
 	public synchronized boolean update()
 	{
 		if(!battleEnded)
+		{
+			for(CombatantInfo combatant : combatants.values())
+			{
+				combatant.entityReference.setPosition(combatant.posX, combatant.posY, combatant.posZ);
+			}
 			switch(status)
 			{
 			case PLAYER_PHASE:
@@ -208,6 +221,7 @@ public class Battle{
 				endCheckPhase();
 				break;
 			}
+		}
 		else
 		{
 			notifyPlayers(false);
@@ -359,49 +373,199 @@ public class Battle{
 
 					if(targetEntity == null || !targetEntity.isEntityAlive() || !combatants.containsKey(targetEntity.getEntityId()))
 						continue;
-					
-					if(missCheck(combatant, combatants.get(combatant.target)))
-					{
-						name = ((EntityPlayer)combatantEntity).getDisplayName();
-						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
 
-						if((targetName = EntityList.getEntityString(targetEntity)) == null)
+					name = ((EntityPlayer)combatantEntity).getDisplayName();
+					name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
+
+					if((targetName = EntityList.getEntityString(targetEntity)) == null)
+					{
+						if(targetEntity instanceof EntityPlayer)
 						{
-							if(targetEntity instanceof EntityPlayer)
-							{
-								targetName = ((EntityPlayer)targetEntity).getDisplayName();
-							}
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
+							targetName = ((EntityPlayer)targetEntity).getDisplayName();
 						}
-						notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
+						targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 					}
-					else
+					
+					if(combatantEntity.getHeldItem().getItem() != null
+							&& combatantEntity.getHeldItem().getItem() instanceof ItemBow)
 					{
-						targetEntity.hurtResistantTime = 0;
-
-						name = ((EntityPlayer)combatantEntity).getDisplayName();
-						name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
-
-						if((targetName = EntityList.getEntityString(targetEntity)) == null)
+						boolean isInfinityBow = EnchantmentHelper.getEnchantmentLevel(Enchantment.infinity.effectId, combatantEntity.getHeldItem()) > 0;
+						if(!((EntityPlayer)combatantEntity).inventory.hasItem(Items.arrow))
 						{
-							if(targetEntity instanceof EntityPlayer)
-							{
-								targetName = ((EntityPlayer)targetEntity).getDisplayName();
-							}
-							targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
+							notifyPlayersWithMessage(name + " tried to attack " + targetName + " with bow and arrows but ran out of ammo!");
 						}
-						
-						if(criticalCheck(combatant))
+						else if(missCheck(combatant, combatants.get(combatant.target)))
 						{
-							combatantEntity.fallDistance = 0.1f;
-							combatantEntity.onGround = false; //critical hit
-							notifyPlayersWithMessage(name + " attacks " + targetName + " with a critical hit!!");
+							notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
+							
+							if(!isInfinityBow)
+							{
+								((EntityPlayer)combatantEntity).inventory.consumeInventoryItem(Items.arrow);
+							}
+
+							EntityArrow entityArrow = null;
+							float power;
+							if(criticalCheck(combatant))
+							{
+								entityArrow = new EntityArrow(combatantEntity.worldObj, combatantEntity, 2.0f);
+								entityArrow.setIsCritical(true);
+								power = 1.0f;
+							}
+							else
+							{
+								entityArrow = new EntityArrow(combatantEntity.worldObj, combatantEntity, 1.333f);
+								power = 0.666f;
+							}
+							
+							int damage = EnchantmentHelper.getEnchantmentLevel(Enchantment.power.effectId, combatantEntity.getHeldItem());
+
+				            if (damage > 0)
+				            {
+				                entityArrow.setDamage(entityArrow.getDamage() + (double)damage * 0.5D + 0.5D);
+				            }
+				            
+				            int knockback = EnchantmentHelper.getEnchantmentLevel(Enchantment.punch.effectId, combatantEntity.getHeldItem());
+
+				            if (knockback > 0)
+				            {
+				                entityArrow.setKnockbackStrength(knockback);
+				            }
+				            
+				            if (EnchantmentHelper.getEnchantmentLevel(Enchantment.flame.effectId, combatantEntity.getHeldItem()) > 0)
+				            {
+				                entityArrow.setFire(100);
+				            }
+				            
+				            entityArrow.setThrowableHeading(targetEntity.posX - combatantEntity.posX, targetEntity.posY - combatantEntity.posY, targetEntity.posZ - combatantEntity.posZ, power * 2.0f * 1.5f, 1.0f);
+				            
+				            combatantEntity.getHeldItem().damageItem(1, combatantEntity);
+				            
+				            if(!isInfinityBow)
+				            {
+				            	entityArrow.canBePickedUp = 1;
+				            }
+				            else
+				            {
+				            	entityArrow.canBePickedUp = 0;
+				            }
+				            combatantEntity.worldObj.spawnEntityInWorld(entityArrow);
+				            combatantEntity.worldObj.playSoundAtEntity(combatantEntity, "random.bow", 1.0F, 1.0F / (BattleSystemServer.random.nextFloat() * 0.4F + 1.2F) + power * 0.5F);
+						}
+						else // has arrows or infinity, did not miss
+						{
+							EntityArrow entityArrow = null;
+							float power;
+							if(criticalCheck(combatant))
+							{
+								entityArrow = new EntityArrow(combatantEntity.worldObj, combatantEntity, 2.0f);
+								entityArrow.setIsCritical(true);
+								power = 1.0f;
+								notifyPlayersWithMessage(name + " attacks " + targetName + " with a critical hit!!");
+							}
+							else
+							{
+								entityArrow = new EntityArrow(combatantEntity.worldObj, combatantEntity, 1.333f);
+								power = 0.666f;
+								notifyPlayersWithMessage(name + " attacks " + targetName + "!");
+							}
+							
+							// net.minecraft.item.ItemBow =====================
+							int damage = EnchantmentHelper.getEnchantmentLevel(Enchantment.power.effectId, combatantEntity.getHeldItem());
+
+				            if (damage > 0)
+				            {
+				                entityArrow.setDamage(entityArrow.getDamage() + (double)damage * 0.5D + 0.5D);
+				            }
+				            
+				            int knockback = EnchantmentHelper.getEnchantmentLevel(Enchantment.punch.effectId, combatantEntity.getHeldItem());
+
+				            if (knockback > 0)
+				            {
+				                entityArrow.setKnockbackStrength(knockback);
+				            }
+				            
+				            if (EnchantmentHelper.getEnchantmentLevel(Enchantment.flame.effectId, combatantEntity.getHeldItem()) > 0)
+				            {
+				                entityArrow.setFire(100);
+				            }
+				            combatantEntity.getHeldItem().damageItem(1, combatantEntity);
+				            //combatantEntity.worldObj.playSoundAtEntity(combatantEntity, "random.bow", 1.0F, 1.0F / (BattleSystemServer.random.nextFloat() * 0.4F + 1.2F) + power * 0.5F);
+				            if(!isInfinityBow)
+				            {
+				            	((EntityPlayer)combatantEntity).inventory.consumeInventoryItem(Items.arrow);
+				            }
+				            // End ItemBow ====================================
+				            
+				            // net.minecraft.entity.projectile.EntityArrow ====
+				            float magnitude = MathHelper.sqrt_double(entityArrow.motionX * entityArrow.motionX + entityArrow.motionY * entityArrow.motionY + entityArrow.motionZ * entityArrow.motionZ);
+		                    int finalDamage = MathHelper.ceiling_double_int((double)magnitude * entityArrow.getDamage());
+
+		                    if (entityArrow.getIsCritical())
+		                    {
+		                        finalDamage += BattleSystemServer.random.nextInt(finalDamage / 2 + 2);
+		                    }
+		                    
+		                    DamageSource damageSource = DamageSource.causeArrowDamage(entityArrow, combatantEntity);
+		                    
+		                    if(entityArrow.isBurning() && !(targetEntity instanceof EntityEnderman))
+		                    {
+		                    	targetEntity.setFire(5);
+		                    }
+		                    BattleSystemServer.attackingEntity = combatantEntity;
+		                    targetEntity.attackEntityFrom(damageSource, finalDamage);
+		                    BattleSystemServer.attackingEntity = null;
+		                    targetEntity.setArrowCountInEntity(targetEntity.getArrowCountInEntity() + 1);
+		                    if(knockback > 0)
+		                    {
+		                    	magnitude = MathHelper.sqrt_double(entityArrow.motionX * entityArrow.motionX + entityArrow.motionZ * entityArrow.motionZ);
+
+                                if (magnitude > 0.0F)
+                                {
+                                    targetEntity.addVelocity(entityArrow.motionX * (double)knockback * 0.6000000238418579D / (double)magnitude, 0.1D, entityArrow.motionZ * (double)knockback * 0.6000000238418579D / (double)magnitude);
+                                }
+		                    }
+
+                            EnchantmentHelper.func_151384_a(targetEntity, combatantEntity); // Thorn enchantment?
+                            EnchantmentHelper.func_151385_b(combatantEntity, targetEntity); // Arthropod enchantment?
+
+                            entityArrow.playSound("random.bowhit", 1.0F, 1.2F / (BattleSystemServer.random.nextFloat() * 0.2F + 0.9F));
+				            // End EntityArrow ================================
+						}
+					}
+					else // not attacking with bow
+					{
+						if(missCheck(combatant, combatants.get(combatant.target)))
+						{
+							notifyPlayersWithMessage(name + " attacks " + targetName + " but missed!");
 						}
 						else
-							notifyPlayersWithMessage(name + " attacks " + targetName + "!");
-						BattleSystemServer.attackingEntity = combatantEntity;
-						((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
-						BattleSystemServer.attackingEntity = null;
+						{
+							targetEntity.hurtResistantTime = 0;
+	
+							name = ((EntityPlayer)combatantEntity).getDisplayName();
+							name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
+	
+							if((targetName = EntityList.getEntityString(targetEntity)) == null)
+							{
+								if(targetEntity instanceof EntityPlayer)
+								{
+									targetName = ((EntityPlayer)targetEntity).getDisplayName();
+								}
+								targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
+							}
+							
+							if(criticalCheck(combatant))
+							{
+								combatantEntity.fallDistance = 0.1f;
+								combatantEntity.onGround = false; //critical hit
+								notifyPlayersWithMessage(name + " attacks " + targetName + " with a critical hit!!");
+							}
+							else
+								notifyPlayersWithMessage(name + " attacks " + targetName + "!");
+							BattleSystemServer.attackingEntity = combatantEntity;
+							((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
+							BattleSystemServer.attackingEntity = null;
+						}
 					}
 				}
 				else if(combatantEntity instanceof EntityMob || combatantEntity instanceof EntityGolem)

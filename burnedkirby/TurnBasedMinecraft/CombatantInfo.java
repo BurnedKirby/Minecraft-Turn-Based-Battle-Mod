@@ -26,6 +26,10 @@ public class CombatantInfo implements Comparable<Object>{
 	public short turnTickTimer;
 	
 	public short useItemID;
+	
+	public double posX;
+	public double posY;
+	public double posZ;
 
 	/**
 	 * All values are percentages.
@@ -93,7 +97,7 @@ public class CombatantInfo implements Comparable<Object>{
 		target = 0;
 	}
 	
-	public CombatantInfo(boolean isPlayer, int id, EntityLivingBase reference, boolean isSideOne, String name, boolean ready, Type type, int target)
+	public CombatantInfo(boolean isPlayer, int id, EntityLivingBase reference, boolean isSideOne, String name, boolean ready, Type type, int target, double posX, double posY, double posZ)
 	{
 		this.isPlayer = isPlayer;
 		this.id = id;
@@ -103,6 +107,9 @@ public class CombatantInfo implements Comparable<Object>{
 		this.ready = ready;
 		this.type = type;
 		this.target = target;
+		this.posX = posX;
+		this.posY = posY;
+		this.posZ = posZ;
 	}
 	
 	public boolean updateBattleInformation(CombatantInfo newInfo)

@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Random;
 import java.util.Stack;
 import java.util.TreeMap;
@@ -56,7 +57,7 @@ public class BattleSystemServer {
 	public Map<String, Boolean> ignoreSystemEntityMap;
 	
 	private Map<Integer,Battle> battles;
-	private Stack<List<Integer>> justEntered;
+	private Queue<List<Integer>> justEntered;
 	protected CombatantInfoSet inBattle;
 	protected CombatantInfoSet exitedBattle;
 
@@ -73,6 +74,8 @@ public class BattleSystemServer {
 	protected static final int exitCooldownTime = 5;
 	
 	private MinecraftServer serverInstance = null;
+	
+	public static final int UPDATE_TIME_MILLISECONDS = 200;
 	
 	public void setServerInstance(MinecraftServer serverInstance) {
 		this.serverInstance = serverInstance;
@@ -132,7 +135,7 @@ public class BattleSystemServer {
 		battles = new TreeMap<Integer,Battle>();
 		inBattle = new CombatantInfoSet();
 		exitedBattle = new CombatantInfoSet();
-		justEntered = new Stack<List<Integer>>();
+		justEntered = new LinkedList<List<Integer>>();
 		random = new Random(System.currentTimeMillis());
 		battleUpdateThread = null;
 		attackingEntity = null;
@@ -168,7 +171,7 @@ public class BattleSystemServer {
 		List<Integer> recentlyAdded;
 		synchronized(justEntered)
 		{
-			recentlyAdded = justEntered.isEmpty() ? null : justEntered.pop();
+			recentlyAdded = justEntered.isEmpty() ? null : justEntered.remove();
 		}
 		List<Integer> justAdded;
 		
@@ -210,8 +213,8 @@ public class BattleSystemServer {
 				}
 			}
 			
-			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.getEntityId(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.getEntityId()));
-			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.getEntityId(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacker.getEntityId()));
+			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.getEntityId(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.getEntityId(), entityAttacker.posX, entityAttacker.posY, entityAttacker.posZ));
+			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.getEntityId(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacker.getEntityId(), entityAttacked.posX, entityAttacked.posY, entityAttacked.posZ));
 			synchronized(battles)
 			{
 				battles.put(battleIDCounter,new Battle(battleIDCounter, combatants, silly));
@@ -224,7 +227,7 @@ public class BattleSystemServer {
 			justAdded.add(entityAttacked.getEntityId());
 			synchronized(justEntered)
 			{
-				justEntered.push(justAdded);
+				justEntered.add(justAdded);
 			}
 			if(recentlyAddedUpdateThread == null || !recentlyAddedUpdateThread.isAlive())
 			{
@@ -261,14 +264,14 @@ public class BattleSystemServer {
 					}
 				}
 				
-				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.getEntityId(), newCombatant, isSideOne, newName, false, Type.DO_NOTHING, inBattleCombatant.getEntityId()));
+				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.getEntityId(), newCombatant, isSideOne, newName, false, Type.DO_NOTHING, inBattleCombatant.getEntityId(), newCombatant.posX, newCombatant.posY, newCombatant.posZ));
 			}
 			returnValue = true;
 			justAdded = new LinkedList<Integer>();
 			justAdded.add(newCombatant.getEntityId());
 			synchronized(justEntered)
 			{
-				justEntered.push(justAdded);
+				justEntered.add(justAdded);
 			}
 			if(recentlyAddedUpdateThread == null || !recentlyAddedUpdateThread.isAlive())
 			{
@@ -383,7 +386,7 @@ public class BattleSystemServer {
 			synchronized(justEntered)
 			{
 				if(!justEntered.isEmpty())
-					justEntered.pop();
+					justEntered.remove();
 			}
 		}
 	}
@@ -435,7 +438,7 @@ public class BattleSystemServer {
 					return;
 				
 				try {
-					Thread.sleep(500);
+					Thread.sleep(UPDATE_TIME_MILLISECONDS);
 				} catch (InterruptedException e) {}
 			}
 		}
