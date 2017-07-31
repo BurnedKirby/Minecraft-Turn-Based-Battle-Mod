@@ -5,7 +5,7 @@ package burnedkirby.TurnBasedMinecraft.core;
  *
  */
 public class Utility {
-	static public float PITCH_OFFSET = 5.0f;
+	static public final float PITCH_OFFSET = 5.0f;
 	
 	static public void log(String log)
 	{
