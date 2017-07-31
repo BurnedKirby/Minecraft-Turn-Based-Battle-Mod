@@ -289,9 +289,7 @@ public class Battle{
 			combatant = iter.next();
 			if(!combatant.entityReference.isEntityAlive())
 			{
-				iter.remove();
-				if(!combatant.isPlayer)
-					messageQueue.push(combatant);
+                messageQueue.push(combatant);
 				
 				combatant.removeEntityReference();
 				combatant.setTarget(BattleSystemServer.exitCooldownTime);
@@ -306,7 +304,6 @@ public class Battle{
 			{
 				if(combatant.decrementTimer() <= 0)
 				{
-					//TODO end turn for player
 					combatant.target = combatant.id;
 					combatant.type = Type.DO_NOTHING;
 					combatant.ready = true;
@@ -315,7 +312,11 @@ public class Battle{
 		}
 		
 		while(!messageQueue.isEmpty())
-			notifyPlayersWithMessage(messageQueue.pop().name + " has died!");
+        {
+            CombatantInfo deadCombatant = messageQueue.pop();
+			notifyPlayersWithMessage(deadCombatant.name + " has died!");
+            combatants.remove(deadCombatant.id);
+        }
 
 		notifyPlayers(forceUpdate);
 		
@@ -405,6 +406,8 @@ public class Battle{
 
 					if(targetEntity == null || !targetEntity.isEntityAlive() || !combatants.containsKey(targetEntity.getEntityId()))
 						continue;
+
+                    targetEntity.hurtResistantTime = 0;
 
 					name = ((EntityPlayer)combatantEntity).getDisplayName();
 					name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
@@ -577,31 +580,15 @@ public class Battle{
 						}
 						else
 						{
-							targetEntity.hurtResistantTime = 0;
-	
-							name = ((EntityPlayer)combatantEntity).getDisplayName();
-							name = ScorePlayerTeam.formatPlayerName(combatantEntity.worldObj.getScoreboard().getPlayersTeam(name), name);
-	
-							if((targetName = EntityList.getEntityString(targetEntity)) == null)
-							{
-								if(targetEntity instanceof EntityPlayer)
-								{
-									targetName = ((EntityPlayer)targetEntity).getDisplayName();
-								}
-								targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
-							}
-							
+							BattleSystemServer.attackingEntity = combatantEntity;
+							((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
+							BattleSystemServer.attackingEntity = null;
 							if(criticalCheck(combatant))
 							{
-								combatantEntity.fallDistance = 0.1f;
-								combatantEntity.onGround = false; //critical hit
 								notifyPlayersWithMessage(name + " attacks " + targetName + " with a critical hit!!");
 							}
 							else
 								notifyPlayersWithMessage(name + " attacks " + targetName + "!");
-							BattleSystemServer.attackingEntity = combatantEntity;
-							((EntityPlayer)combatantEntity).attackTargetEntityWithCurrentItem(targetEntity);
-							BattleSystemServer.attackingEntity = null;
 						}
 					}
 				}
@@ -676,7 +663,7 @@ public class Battle{
 						// select player at random, if player exists
 						CombatantInfo targetInfo = getRandomPlayerTarget(combatant, combatantArray);
 						if(targetInfo != null)
-							targetEntity = getRandomPlayerTarget(combatant, combatantArray).entityReference;
+							targetEntity = targetInfo.entityReference;
 						else
 							continue;
 					}
