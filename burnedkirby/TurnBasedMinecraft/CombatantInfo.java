@@ -30,6 +30,9 @@ public class CombatantInfo implements Comparable<Object>{
 	public double posX;
 	public double posY;
 	public double posZ;
+	
+	public float yaw;
+	public float pitch;
 
 	/**
 	 * All values are percentages.
@@ -97,7 +100,7 @@ public class CombatantInfo implements Comparable<Object>{
 		target = 0;
 	}
 	
-	public CombatantInfo(boolean isPlayer, int id, EntityLivingBase reference, boolean isSideOne, String name, boolean ready, Type type, int target, double posX, double posY, double posZ)
+	public CombatantInfo(boolean isPlayer, int id, EntityLivingBase reference, boolean isSideOne, String name, boolean ready, Type type, int target, double posX, double posY, double posZ, float yaw, float pitch)
 	{
 		this.isPlayer = isPlayer;
 		this.id = id;
@@ -110,6 +113,8 @@ public class CombatantInfo implements Comparable<Object>{
 		this.posX = posX;
 		this.posY = posY;
 		this.posZ = posZ;
+		this.yaw = yaw;
+		this.pitch = pitch;
 	}
 	
 	public boolean updateBattleInformation(CombatantInfo newInfo)
@@ -165,5 +170,20 @@ public class CombatantInfo implements Comparable<Object>{
 	@Override
 	public int compareTo(Object other) {
 		return id - ((CombatantInfo)other).id;
+	}
+	
+	public void setPosY(double y)
+	{
+		posY = y;
+	}
+	
+	public void setYaw(float yaw)
+	{
+		this.yaw = yaw;
+	}
+	
+	public void setPitch(float pitch)
+	{
+		this.pitch = pitch;
 	}
 }

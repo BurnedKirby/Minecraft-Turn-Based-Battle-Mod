@@ -19,6 +19,7 @@ import cpw.mods.fml.relauncher.Side;
 import burnedkirby.TurnBasedMinecraft.core.CommonProxy;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleCombatantPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleCommandPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleLookPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleMessagePacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleQueryPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleStatusPacket;
@@ -63,6 +64,7 @@ public class ModMain {
 		network.registerMessage(BattleStatusPacket.Handler.class, BattleStatusPacket.class, 4, Side.CLIENT);
 		network.registerMessage(CombatantHealthPacket.Handler.class, CombatantHealthPacket.class, 5, Side.CLIENT);
 		network.registerMessage(InitiateBattlePacket.Handler.class, InitiateBattlePacket.class, 6, Side.CLIENT);
+		network.registerMessage(BattleLookPacket.Handler.class, BattleLookPacket.class, 7, Side.SERVER);
 	}
 	
 	@EventHandler

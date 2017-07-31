@@ -15,6 +15,7 @@ import burnedkirby.TurnBasedMinecraft.core.network.InitiateBattlePacket;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.monster.EntityEnderman;
@@ -108,6 +109,15 @@ public class Battle{
 			if(isFightingEntity(newCombatant.entityReference))
 			{
 				newCombatant.type = Type.ATTACK;
+			}
+			
+			for(CombatantInfo combatant : combatants.values())
+			{
+				if(combatant.isPlayer)
+				{
+					combatant.setYaw(Utility.yawDirection(combatant.posX, combatant.posZ, newCombatant.posX, newCombatant.posZ));
+					combatant.setPitch(Utility.pitchDirection(combatant.posX, combatant.posY, combatant.posZ, newCombatant.posX, newCombatant.posY, newCombatant.posZ) + Utility.PITCH_OFFSET);
+				}
 			}
 			
 			combatants.put(newCombatant.id, newCombatant);
@@ -207,7 +217,18 @@ public class Battle{
 		{
 			for(CombatantInfo combatant : combatants.values())
 			{
-				combatant.entityReference.setPosition(combatant.posX, combatant.posY, combatant.posZ);
+				if(combatant.isPlayer)
+				{
+					if(combatant.entityReference.posY < combatant.posY)
+					{
+						combatant.setPosY(combatant.entityReference.posY);
+					}
+					((EntityPlayerMP)combatant.entityReference).playerNetServerHandler.setPlayerLocation(combatant.posX, combatant.posY, combatant.posZ, combatant.yaw, combatant.pitch);
+				}
+				else
+				{
+					combatant.entityReference.setPosition(combatant.posX, combatant.posY, combatant.posZ);
+				}
 			}
 			switch(status)
 			{
@@ -243,6 +264,17 @@ public class Battle{
 		while(!newCombatantQueue.isEmpty())
 		{
 			CombatantInfo combatant = newCombatantQueue.pop();
+			if(newCombatantQueue.isEmpty())
+			{
+				for(CombatantInfo battlingCombatant : combatants.values())
+				{
+					if(battlingCombatant.isPlayer)
+					{
+						battlingCombatant.setYaw(Utility.yawDirection(battlingCombatant.posX, battlingCombatant.posZ, combatant.posX, combatant.posZ));
+						battlingCombatant.setPitch(Utility.pitchDirection(battlingCombatant.posX, battlingCombatant.posY, battlingCombatant.posZ, combatant.posX, combatant.posY, combatant.posZ) + Utility.PITCH_OFFSET);
+					}
+				}
+			}
 			combatants.put(combatant.id, combatant);
 			ModMain.bss.inBattle.add(combatant);
 			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.worldObj.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
@@ -323,7 +355,6 @@ public class Battle{
 			
 			if(fleeCheck(combatant))
 			{
-				iter.remove();
 				if(combatant.isPlayer)
 					notifyPlayer(false, combatant, true);
 				messageQueue.push(combatant);
@@ -346,6 +377,7 @@ public class Battle{
 			combatant = messageQueue.pop();
 			name = ScorePlayerTeam.formatPlayerName(combatant.entityReference.worldObj.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 			notifyPlayersWithMessage(name + " has fled battle!");
+			combatants.remove(combatant.id);
 		}
 		
 		//Combatant attack phase
@@ -385,6 +417,11 @@ public class Battle{
 						}
 						targetName = ScorePlayerTeam.formatPlayerName(targetEntity.worldObj.getScoreboard().getPlayersTeam(targetName), targetName);
 					}
+					
+					// set player to look at target
+					combatant.setYaw(Utility.yawDirection(combatant.posX, combatant.posZ, targetEntity.posX, targetEntity.posZ));
+					combatant.setPitch(Utility.pitchDirection(combatant.posX, combatant.posY, combatant.posZ, targetEntity.posX, targetEntity.posY, targetEntity.posZ) + Utility.PITCH_OFFSET);
+					((EntityPlayerMP)combatant.entityReference).playerNetServerHandler.setPlayerLocation(combatant.posX, combatant.posY, combatant.posZ, combatant.yaw, combatant.pitch);
 					
 					if(combatantEntity.getHeldItem().getItem() != null
 							&& combatantEntity.getHeldItem().getItem() instanceof ItemBow)
@@ -570,11 +607,20 @@ public class Battle{
 				}
 				else if(combatantEntity instanceof EntityMob || combatantEntity instanceof EntityGolem)
 				{
-					CombatantInfo targetInfo = getRandomPlayerTarget(combatant, combatantArray);
-					if(targetInfo != null)
-						targetEntity = getRandomPlayerTarget(combatant, combatantArray).entityReference;
-					
-					if(targetEntity == null)
+					CombatantInfo targetInfo = null;
+					targetEntity = ((EntityLiving)combatantEntity).getAttackTarget();
+					if(targetEntity != null && combatants.containsKey(targetEntity.getEntityId()))
+					{
+						targetInfo = combatants.get(targetEntity.getEntityId());
+					}
+					else
+					{
+						targetEntity = null;
+						targetInfo = getRandomPlayerTarget(combatant, combatantArray);
+						if(targetInfo != null)
+							targetEntity = targetInfo.entityReference;
+					}
+					if(targetEntity == null || !combatants.containsKey(targetEntity.getEntityId()))
 						continue;
 					else if((targetName = EntityList.getEntityString(targetEntity)) == null)
 					{
@@ -720,7 +766,8 @@ public class Battle{
 					((ItemPotion)targetItem).onEaten(targetItemStack, combatantArray[i].entityReference.worldObj, (EntityPlayer) combatantArray[i].entityReference);
 					if(isLast)
 					{
-						((EntityPlayer)combatantArray[i].entityReference).inventory.setInventorySlotContents(combatantArray[i].useItemID, null);
+						ItemStack glassBottle = new ItemStack(Items.glass_bottle); 
+						((EntityPlayer)combatantArray[i].entityReference).inventory.setInventorySlotContents(combatantArray[i].useItemID, glassBottle);
 					}
 					notifyPlayersWithMessage(((EntityPlayer)combatantArray[i].entityReference).getDisplayName() + " consumed a " + targetItemName + "!");
 				}
