@@ -32,7 +32,7 @@ public class ModMain {
 	
 	public static final String modid = "mod_burnedkirby_turnbasedminecraft";
 	
-	public static final String versionNumber = "0.4.3_1.7.10_a";
+	public static final String versionNumber = "0.4.4_1.7.10_a";
 	
 	@Instance("BurnedKirbyTurnBasedBattleSystem")
 	public static ModMain instance = new ModMain();
