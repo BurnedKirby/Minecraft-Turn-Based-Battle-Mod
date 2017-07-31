@@ -5,6 +5,9 @@ package burnedkirby.TurnBasedMinecraft.core;
  *
  */
 public class Utility {
+	
+	static public final float PITCH_OFFSET = 5.0f;
+	
 	static public void log(String log)
 	{
 		System.out.println("[BK_TBM] " + log);

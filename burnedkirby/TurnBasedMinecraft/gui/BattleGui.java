@@ -15,6 +15,7 @@ import burnedkirby.TurnBasedMinecraft.CombatantInfo.Type;
 import burnedkirby.TurnBasedMinecraft.ModMain;
 import burnedkirby.TurnBasedMinecraft.core.Utility;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleCommandPacket;
+import burnedkirby.TurnBasedMinecraft.core.network.BattleLookPacket;
 import burnedkirby.TurnBasedMinecraft.core.network.BattleQueryPacket;
 
 /**
@@ -240,12 +241,15 @@ public class BattleGui extends GuiScreen {
 	private void drawCombatant(CombatantInfo combatant, int x, int y, int color)
 	{
 		int nameLength = Minecraft.getMinecraft().fontRenderer.getStringWidth(combatant.name);
+		int lookLength = Minecraft.getMinecraft().fontRenderer.getStringWidth("look at");
+		final int lookOffset = 4;
 		String name = ScorePlayerTeam.formatPlayerName(Minecraft.getMinecraft().world.getScoreboard().getPlayersTeam(combatant.name), combatant.name);
 		if(combatantButton)
 		{
 			if(!combatantButtonPopulated)
 			{
 				buttonList.add(new IDSelectionButton(counterMenu ? 8 : 5, combatant.id, x - nameLength/2, y, nameLength + 2, 8, name));
+				buttonList.add(new IDSelectionButton(11, combatant.id, x + (combatant.isSideOne ? nameLength/2 + lookOffset : -nameLength/2 - lookLength - lookOffset), y, lookLength + 2, 8, "look at"));
 			}
 		}
 		else
@@ -331,6 +335,7 @@ public class BattleGui extends GuiScreen {
 			break;
 		case 3: //Attack Selection (Handled by actionPerformed method)
 			info[0] = "Pick a target!";
+			buttonList.add(new GuiButton(0, width/2 - 40, height - 40, 80, 20, "Cancel"));
 			break;
 		case 4: //Change weapon menu
 			info[0] = "Pick your weapon!";
@@ -350,6 +355,7 @@ public class BattleGui extends GuiScreen {
 			break;
 		case 7: //Dodge/Counter menu
 			info[0] = "Select your expected attacker!";
+			buttonList.add(new GuiButton(0, width/2 - 40, height - 40, 80, 20, "Cancel"));
 			break;
 		case 8:
 			info[0] = "You prepare to counter that combatant!";
@@ -420,6 +426,9 @@ public class BattleGui extends GuiScreen {
 			ModMain.network.sendToServer(new BattleCommandPacket(battleID, player));
 			turnChoiceSent = true;
 			break;
+		case 11: // picked look at entity
+			ModMain.network.sendToServer(new BattleLookPacket(battleID, player.id, ((IDSelectionButton)button).entityID));
+			return;
 		default: break;
 		}
 		

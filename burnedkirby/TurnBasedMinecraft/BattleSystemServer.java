@@ -219,8 +219,8 @@ public class BattleSystemServer {
 			else if((attackedName = EntityList.getEntityString(entityAttacked)) == null)
 				attackedName = entityAttacked.getName();
 			
-			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.getEntityId(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.getEntityId(), entityAttacker.posX, entityAttacker.posY, entityAttacker.posZ));
-			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.getEntityId(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacker.getEntityId(), entityAttacked.posX, entityAttacked.posY, entityAttacked.posZ));
+			combatants.push(new CombatantInfo(entityAttacker instanceof EntityPlayer, entityAttacker.getEntityId(), entityAttacker, true, attackerName, false, Type.DO_NOTHING, entityAttacked.getEntityId(), entityAttacker.posX, entityAttacker.posY, entityAttacker.posZ, Utility.yawDirection(entityAttacker.posX, entityAttacker.posZ, entityAttacked.posX, entityAttacked.posZ), Utility.pitchDirection(entityAttacker.posX, entityAttacker.posY, entityAttacker.posZ, entityAttacked.posX, entityAttacked.posY, entityAttacked.posZ) + Utility.PITCH_OFFSET));
+			combatants.push(new CombatantInfo(entityAttacked instanceof EntityPlayer, entityAttacked.getEntityId(), entityAttacked, false, attackedName, false, Type.DO_NOTHING, entityAttacker.getEntityId(), entityAttacked.posX, entityAttacked.posY, entityAttacked.posZ, Utility.yawDirection(entityAttacked.posX, entityAttacked.posZ, entityAttacker.posX, entityAttacker.posZ), Utility.pitchDirection(entityAttacked.posX, entityAttacked.posY, entityAttacked.posZ, entityAttacker.posX, entityAttacker.posY, entityAttacker.posZ) + Utility.PITCH_OFFSET));
 			synchronized(battles)
 			{
 				battles.put(battleIDCounter,new Battle(battleIDCounter, combatants, silly));
@@ -265,7 +265,7 @@ public class BattleSystemServer {
 				else if((newName = EntityList.getEntityString(newCombatant)) == null)
 					newName = newCombatant.getName();
 				
-				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.getEntityId(), newCombatant, isSideOne, newName, false, Type.DO_NOTHING, inBattleCombatant.getEntityId(), newCombatant.posX, newCombatant.posY, newCombatant.posZ));
+				battleToJoin.addCombatant(new CombatantInfo(newCombatant instanceof EntityPlayer, newCombatant.getEntityId(), newCombatant, isSideOne, newName, false, Type.DO_NOTHING, inBattleCombatant.getEntityId(), newCombatant.posX, newCombatant.posY, newCombatant.posZ, Utility.yawDirection(newCombatant.posX, newCombatant.posZ, inBattleCombatant.posX, inBattleCombatant.posZ), Utility.pitchDirection(newCombatant.posX, newCombatant.posY, newCombatant.posZ, inBattleCombatant.posX, inBattleCombatant.posY, inBattleCombatant.posZ) + Utility.PITCH_OFFSET));
 			}
 			returnValue = true;
 			justAdded = new LinkedList<Integer>();
@@ -373,6 +373,26 @@ public class BattleSystemServer {
 				return;
 			}
 			battles.get(battleID).updatePlayerStatus(player);
+		}
+	}
+	
+	public void managePlayerLookAt(int battleID, int playerID, int targetID)
+	{
+		synchronized(battles)
+		{
+			Battle battle = battles.get(battleID);
+			if(battle == null)
+			{
+				return;
+			}
+			CombatantInfo player = battle.getCombatant(playerID);
+			CombatantInfo target = battle.getCombatant(targetID);
+			if(player == null || target == null)
+			{
+				return;
+			}
+			player.setYaw(Utility.yawDirection(player.posX, player.posZ, target.posX, target.posZ));
+			player.setPitch(Utility.pitchDirection(player.posX, player.posY, player.posZ, target.posX, target.posY, target.posZ) + Utility.PITCH_OFFSET);
 		}
 	}
 	
