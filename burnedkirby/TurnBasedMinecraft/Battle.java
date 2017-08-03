@@ -426,7 +426,8 @@ public class Battle{
 					combatant.setPitch(Utility.pitchDirection(combatant.posX, combatant.posY, combatant.posZ, targetEntity.posX, targetEntity.posY, targetEntity.posZ) + Utility.PITCH_OFFSET);
 					((EntityPlayerMP)combatant.entityReference).playerNetServerHandler.setPlayerLocation(combatant.posX, combatant.posY, combatant.posZ, combatant.yaw, combatant.pitch);
 					
-					if(combatantEntity.getHeldItem().getItem() != null
+					if(combatantEntity.getHeldItem() != null
+							&& combatantEntity.getHeldItem().getItem() != null
 							&& combatantEntity.getHeldItem().getItem() instanceof ItemBow)
 					{
 						boolean isInfinityBow = EnchantmentHelper.getEnchantmentLevel(Enchantment.infinity.effectId, combatantEntity.getHeldItem()) > 0;
