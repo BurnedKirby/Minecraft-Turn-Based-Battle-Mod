@@ -1,8 +1,11 @@
 Minecraft-Turn-Based-Battle-Mod
 ===============================
 
-A mod for Minecraft (using Minecraft Forge) that employs a turn-based battle system.
+# This mod is no longer being maintained!
 
+## A rewrite of this mod was created here: https://github.com/Stephen-Seo/TurnBasedMinecraftMod
+
+A mod for Minecraft (using Minecraft Forge) that employs a turn-based battle system.
 
 ### Mod currently compiles on Minecraft Forge 1.12-14.21.1.2387
 
